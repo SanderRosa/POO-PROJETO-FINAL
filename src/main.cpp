@@ -42,14 +42,13 @@ void limparBuffer() {
 }
 
 /**
- * @brief Limpa a tela do terminal
+ * @brief Limpa a tela do terminal usando códigos ANSI
  */
 void limparTela() {
-    #ifdef _WIN32
-        system("cls");
-    #else
-        system("clear");
-    #endif
+    // Usa códigos ANSI de escape para limpar a tela
+    // \033[2J - Limpa toda a tela
+    // \033[H - Move cursor para posição inicial (1,1)
+    std::cout << "\033[2J\033[H" << std::flush;
 }
 
 /**

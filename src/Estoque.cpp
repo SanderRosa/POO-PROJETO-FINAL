@@ -424,9 +424,8 @@ void Estoque::listarProdutosVencidos() const {
     
     bool encontrou = false;
     for (const auto& produto : produtos) {
-        auto perecivel = std::dynamic_pointer_cast<ProdutoPerecivel>(
-            std::const_pointer_cast<IProduto>(produto)
-        );
+        // Usa dynamic_pointer_cast diretamente sem remover const
+        auto perecivel = std::dynamic_pointer_cast<const ProdutoPerecivel>(produto);
         if (perecivel && perecivel->estaVencido()) {
             perecivel->exibirInfo();
             std::cout << std::endl;
@@ -446,9 +445,8 @@ void Estoque::listarProximosVencer(int dias) const {
     
     bool encontrou = false;
     for (const auto& produto : produtos) {
-        auto perecivel = std::dynamic_pointer_cast<ProdutoPerecivel>(
-            std::const_pointer_cast<IProduto>(produto)
-        );
+        // Usa dynamic_pointer_cast diretamente sem remover const
+        auto perecivel = std::dynamic_pointer_cast<const ProdutoPerecivel>(produto);
         if (perecivel) {
             int diasParaVencer = perecivel->diasParaVencer();
             if (diasParaVencer >= 0 && diasParaVencer <= dias) {

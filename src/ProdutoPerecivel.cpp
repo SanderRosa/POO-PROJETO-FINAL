@@ -72,10 +72,17 @@ bool ProdutoPerecivel::estaVencido() const {
 }
 
 int ProdutoPerecivel::diasParaVencer() const {
-    // Parse da data de validade (formato: YYYY-MM-DD)
+    // Parse da data de validade (formato: YYYY-MM-DD) usando std::istringstream
     int anoVal, mesVal, diaVal;
-    if (sscanf(dataValidade.c_str(), "%d-%d-%d", &anoVal, &mesVal, &diaVal) != 3) {
-        return -1; // Erro no formato
+    char sep1, sep2;
+    std::istringstream iss(dataValidade);
+    
+    if (!(iss >> anoVal >> sep1 >> mesVal >> sep2 >> diaVal) || 
+        sep1 != '-' || sep2 != '-' ||
+        anoVal < 1900 || anoVal > 2100 ||
+        mesVal < 1 || mesVal > 12 ||
+        diaVal < 1 || diaVal > 31) {
+        return -1; // Erro no formato ou valores inválidos
     }
     
     // Data atual
