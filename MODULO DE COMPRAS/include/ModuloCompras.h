@@ -105,6 +105,63 @@ public:
         return gerenciadorOrdens->getModuloProducao();
     }
 
+    EstoqueMock* getModuloEstoque() {
+        return gerenciadorOrdens->getModuloEstoque();
+    }
+
+    // ========== OPERACOES COM ESTOQUE ==========
+
+    int consultarEstoque(int idMaterial) {
+        return gerenciadorOrdens->getModuloEstoque()->consultarItem(idMaterial);
+    }
+
+    void listarTodosItensEstoque() {
+        auto lista = gerenciadorOrdens->getModuloEstoque()->listarTodosItens();
+        std::cout << "\n=== ITENS DO ESTOQUE ===\n";
+        for (const auto& item : lista) {
+            std::cout << item << "\n";
+        }
+        std::cout << "========================\n";
+    }
+
+    bool reservarMaterial(int idMaterial, int quantidade) {
+        return gerenciadorOrdens->getModuloEstoque()->reservarMaterial(idMaterial, quantidade);
+    }
+
+    void exibirInventarioEstoque() {
+        gerenciadorOrdens->getModuloEstoque()->exibirInventario();
+    }
+
+    // ========== OPERACOES COM PRODUCAO ==========
+
+    int criarPedidoMaterial(int idMaterial, int quantidade, int prioridade) {
+        return gerenciadorOrdens->getModuloProducao()->receberPedidoMaterial(idMaterial, quantidade, prioridade);
+    }
+
+    void listarPedidosProducaoPendentes() {
+        auto lista = gerenciadorOrdens->getModuloProducao()->listarPedidosPendentes();
+        std::cout << "\n=== PEDIDOS DE PRODUCAO PENDENTES ===\n";
+        for (const auto& pedido : lista) {
+            std::cout << pedido << "\n";
+        }
+        std::cout << "=====================================\n";
+    }
+
+    // ========== OPERACOES COM FINANCEIRO ==========
+
+    void listarContasPagar() {
+        auto lista = gerenciadorOrdens->getModuloFinanceiro()->listarContasPagar();
+        std::cout << "\n=== CONTAS A PAGAR ===\n";
+        for (const auto& conta : lista) {
+            std::cout << conta << "\n";
+        }
+        std::cout << "======================\n";
+    }
+
+    double consultarSaldoFinanceiro() {
+        return gerenciadorOrdens->getModuloFinanceiro()->getSaldo();
+    }
+
     // Metodos auxiliares para menu
     auto obterTodasAsOrdens() const {
         return std::make_unique<ListaGenerica<OrdemCompra>>(gerenciadorOrdens->obterLista());

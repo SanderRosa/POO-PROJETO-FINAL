@@ -9,6 +9,8 @@ GerenciadorOrdens::GerenciadorOrdens() : proximoId(1) {
     modulo_financeiro = std::make_unique<FinanceiroMock>();
     // Inicializa o módulo de produção simulado (Mock).
     modulo_producao = std::make_unique<ProducaoMock>();
+    // Inicializa o módulo de estoque simulado (Mock).
+    modulo_estoque = std::make_unique<EstoqueMock>();
 }
 
 // Destrutor: Não precisa fazer nada manual pois os unique_ptr limpam a memória automaticamente.
@@ -97,10 +99,28 @@ int GerenciadorOrdens::criar(int idItem, int quantidade, double valorUnitario, i
         return -1;
     }
 
-    // Se tudo deu certo no financeiro, notifica a produção que o material vai chegar.
-    std::cout << "------ PRODUCAO --------\n";
+    // Se tudo deu certo no financeiro, registra no financeiro como conta a pagar
+    std::cout << "\n------ FINANCEIRO - Registro de Conta ------\n";
+    // Data de vencimento simulada: 30 dias após a compra
+    modulo_financeiro->registrarContaPagar(idOrdemAtribuido, valorTotal, 
+                                          "Fornecedor #" + std::to_string(idFornecedor), 
+                                          "30 dias");
+    std::cout << "--------------------------------------------\n\n";
+
+    // Notifica a produção que o material foi comprado
+    std::cout << "------ PRODUCAO - Notificacao --------\n";
     modulo_producao->notificarMaterialComprado(idItem);
-    std::cout << "------------------------\n\n";
+    std::cout << "--------------------------------------\n\n";
+
+    // Atualiza a previsão de entrega para a produção
+    std::cout << "------ PRODUCAO - Previsao Entrega --------\n";
+    modulo_producao->atualizarPrevisaoEntrega(idOrdemAtribuido, "7-10 dias úteis");
+    std::cout << "-------------------------------------------\n\n";
+
+    // Registra a entrada do material no estoque quando a compra é aprovada
+    std::cout << "------ ESTOQUE - Entrada de Compra --------\n";
+    modulo_estoque->registrarEntradaCompra(idItem, quantidade, idOrdemAtribuido);
+    std::cout << "-------------------------------------------\n\n";
 
     // Finalmente, marca a ordem como APROVADA.
     novaOrdem.setStatus(StatusOrdem::APROVADO);

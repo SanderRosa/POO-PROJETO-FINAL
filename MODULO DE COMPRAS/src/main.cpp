@@ -8,8 +8,12 @@
 
 // Função simples para limpar o console.
 void limparTela() {
-    // Comando do sistema Windows para limpar a tela. Em Linux/Mac seria "clear".
-    system("cls");
+    // Comando multiplataforma para limpar a tela
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
 }
 
 // Função para exibir o título do sistema no topo da tela.
@@ -26,9 +30,20 @@ void exibirMenu() {
     std::cout << "4. Listar Ordens de Compra\n";
     std::cout << "5. Exibir Estatisticas\n";
     std::cout << "6. Investigar Fornecedor na Web\n";
-    std::cout << "7. Salvar Dados em Arquivo\n";
-    std::cout << "8. Carregar Dados do Arquivo\n";
-    std::cout << "9. Sair\n";
+    std::cout << "\n--- ESTOQUE ---\n";
+    std::cout << "7. Consultar Item do Estoque\n";
+    std::cout << "8. Listar Todos Itens do Estoque\n";
+    std::cout << "9. Reservar Material do Estoque\n";
+    std::cout << "\n--- PRODUCAO ---\n";
+    std::cout << "10. Criar Pedido de Material para Producao\n";
+    std::cout << "11. Listar Pedidos de Producao Pendentes\n";
+    std::cout << "\n--- FINANCEIRO ---\n";
+    std::cout << "12. Listar Contas a Pagar\n";
+    std::cout << "13. Consultar Saldo Disponivel\n";
+    std::cout << "\n--- SISTEMA ---\n";
+    std::cout << "14. Salvar Dados em Arquivo\n";
+    std::cout << "15. Carregar Dados do Arquivo\n";
+    std::cout << "16. Sair\n";
     std::cout << "\n";
 }
 
@@ -225,6 +240,101 @@ void menuCarregarDados(ModuloCompras& modulo) {
     std::cin.get();
 }
 
+// Função para consultar item específico do estoque.
+void menuConsultarEstoque(ModuloCompras& modulo) {
+    std::cout << "\nCONSULTAR ITEM DO ESTOQUE\n";
+    std::cout << "ID do Material: ";
+    int idMaterial = obterInteiro();
+    
+    int quantidade = modulo.consultarEstoque(idMaterial);
+    
+    if (quantidade >= 0) {
+        std::cout << "\nMaterial ID " << idMaterial << ": " << quantidade << " unidades disponiveis\n";
+    } else {
+        std::cout << "\nMaterial não encontrado no estoque.\n";
+    }
+    
+    std::cout << "\nPressione ENTER para continuar...";
+    std::cin.get();
+}
+
+// Função para listar todos os itens do estoque.
+void menuListarItensEstoque(ModuloCompras& modulo) {
+    modulo.listarTodosItensEstoque();
+    std::cout << "\nPressione ENTER para continuar...";
+    std::cin.get();
+}
+
+// Função para reservar material do estoque.
+void menuReservarMaterial(ModuloCompras& modulo) {
+    std::cout << "\nRESERVAR MATERIAL DO ESTOQUE\n";
+    std::cout << "ID do Material: ";
+    int idMaterial = obterInteiro();
+    
+    std::cout << "Quantidade a reservar: ";
+    int quantidade = obterInteiro();
+    
+    bool sucesso = modulo.reservarMaterial(idMaterial, quantidade);
+    
+    if (sucesso) {
+        std::cout << "\nMaterial reservado com sucesso!\n";
+    } else {
+        std::cout << "\nFalha ao reservar material (quantidade insuficiente).\n";
+    }
+    
+    std::cout << "\nPressione ENTER para continuar...";
+    std::cin.get();
+}
+
+// Função para criar pedido de material para a produção.
+void menuCriarPedidoMaterial(ModuloCompras& modulo) {
+    std::cout << "\nCRIAR PEDIDO DE MATERIAL PARA PRODUCAO\n";
+    std::cout << "ID do Material: ";
+    int idMaterial = obterInteiro();
+    
+    std::cout << "Quantidade: ";
+    int quantidade = obterInteiro();
+    
+    std::cout << "Prioridade (1=Baixa, 2=Media, 3=Alta): ";
+    int prioridade = obterInteiro();
+    
+    if (prioridade < 1 || prioridade > 3) {
+        std::cout << "\nPrioridade inválida! Use 1, 2 ou 3.\n";
+    } else {
+        int idPedido = modulo.criarPedidoMaterial(idMaterial, quantidade, prioridade);
+        if (idPedido > 0) {
+            std::cout << "\nPedido #" << idPedido << " criado com sucesso!\n";
+        } else {
+            std::cout << "\nFalha ao criar pedido.\n";
+        }
+    }
+    
+    std::cout << "\nPressione ENTER para continuar...";
+    std::cin.get();
+}
+
+// Função para listar pedidos de produção pendentes.
+void menuListarPedidosProducao(ModuloCompras& modulo) {
+    modulo.listarPedidosProducaoPendentes();
+    std::cout << "\nPressione ENTER para continuar...";
+    std::cin.get();
+}
+
+// Função para listar contas a pagar.
+void menuListarContasPagar(ModuloCompras& modulo) {
+    modulo.listarContasPagar();
+    std::cout << "\nPressione ENTER para continuar...";
+    std::cin.get();
+}
+
+// Função para consultar saldo financeiro.
+void menuConsultarSaldoFinanceiro(ModuloCompras& modulo) {
+    double saldo = modulo.consultarSaldoFinanceiro();
+    std::cout << "\nSALDO DISPONIVEL: R$ " << std::fixed << std::setprecision(2) << saldo << "\n";
+    std::cout << "\nPressione ENTER para continuar...";
+    std::cin.get();
+}
+
 // ========== FUNÇÃO PRINCIPAL (Ponto de entrada) ==========
 
 int main() {
@@ -289,16 +399,51 @@ int main() {
                     break;
 
                 case 7:
-                    menuSalvarDados(modulo);
+                    menuConsultarEstoque(modulo);
                     limparTela();
                     break;
 
                 case 8:
-                    menuCarregarDados(modulo);
+                    menuListarItensEstoque(modulo);
                     limparTela();
                     break;
 
                 case 9:
+                    menuReservarMaterial(modulo);
+                    limparTela();
+                    break;
+
+                case 10:
+                    menuCriarPedidoMaterial(modulo);
+                    limparTela();
+                    break;
+
+                case 11:
+                    menuListarPedidosProducao(modulo);
+                    limparTela();
+                    break;
+
+                case 12:
+                    menuListarContasPagar(modulo);
+                    limparTela();
+                    break;
+
+                case 13:
+                    menuConsultarSaldoFinanceiro(modulo);
+                    limparTela();
+                    break;
+
+                case 14:
+                    menuSalvarDados(modulo);
+                    limparTela();
+                    break;
+
+                case 15:
+                    menuCarregarDados(modulo);
+                    limparTela();
+                    break;
+
+                case 16:
                     // Opção de sair. Salva os dados automaticamente antes de fechar.
                     std::cout << "Salvando dados antes de encerrar...\n";
                     modulo.salvarTodosDados();
@@ -307,8 +452,8 @@ int main() {
                     break;
 
                 default:
-                    // Tratamento para números fora do intervalo 1-9.
-                    std::cout << "Opcao invalida! Digite um numero entre 1 e 9.\n";
+                    // Tratamento para números fora do intervalo 1-16.
+                    std::cout << "Opcao invalida! Digite um numero entre 1 e 16.\n";
                     std::cout << "Pressione ENTER para continuar...";
                     std::cin.get();
                     limparTela();
