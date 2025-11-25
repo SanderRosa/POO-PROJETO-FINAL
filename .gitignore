@@ -46,3 +46,4 @@ bin/
 
 # Data files
 *.dat
+_codeql*
