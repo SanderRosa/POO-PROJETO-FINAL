@@ -39,3 +39,10 @@
 
 # debug information files
 *.dwo
+
+# Build directories
+obj/
+bin/
+
+# Data files
+*.dat
