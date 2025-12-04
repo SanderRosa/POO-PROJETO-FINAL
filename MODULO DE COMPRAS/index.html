@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gerenciamento de Compras</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>Sistema de Gerenciamento de Compras</h1>
+                <p class="subtitle">Controle integrado de fornecedores, ordens e estoque</p>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="navbar">
+            <ul class="nav-menu">
+                <li><a href="#fornecedores" class="nav-link active" onclick="showSection('fornecedores')">Fornecedores</a></li>
+                <li><a href="#ordens" class="nav-link" onclick="showSection('ordens')">Ordens</a></li>
+                <li><a href="#estoque" class="nav-link" onclick="showSection('estoque')">Estoque</a></li>
+                <li><a href="#producao" class="nav-link" onclick="showSection('producao')">Produção</a></li>
+                <li><a href="#financeiro" class="nav-link" onclick="showSection('financeiro')">Financeiro</a></li>
+                <li><a href="#relatorios" class="nav-link" onclick="showSection('relatorios')">Relatórios</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Fornecedores Section -->
+            <section id="fornecedores" class="section active">
+                <div class="section-header">
+                    <h2>Gerenciamento de Fornecedores</h2>
+                </div>
+
+                <div class="form-container">
+                    <h3>Adicionar Novo Fornecedor</h3>
+                    <form id="fornecedorForm" class="form">
+                        <div class="form-group">
+                            <label for="nome">Nome do Fornecedor</label>
+                            <input type="text" id="nome" name="nome" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="endereco">Endereço</label>
+                                <input type="text" id="endereco" name="endereco" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cnpj">CNPJ</label>
+                                <input type="text" id="cnpj" name="cnpj" placeholder="XX.XXX.XXX/XXXX-XX" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="produto">Produto</label>
+                                <input type="text" id="produto" name="produto" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="preco">Preço (R$)</label>
+                                <input type="number" id="preco" name="preco" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Adicionar Fornecedor</button>
+                    </form>
+                </div>
+
+                <div class="table-container">
+                    <h3>Lista de Fornecedores</h3>
+                    <div class="toolbar">
+                        <input type="text" id="searchFornecedor" class="search-input" placeholder="Buscar fornecedor...">
+                        <select id="filterProduto" class="filter-select">
+                            <option value="">Filtrar por produto...</option>
+                            <option value="Aço Inox">Aço Inox</option>
+                            <option value="Parafusos">Parafusos</option>
+                            <option value="Borracha">Borracha Industrial</option>
+                        </select>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>CNPJ</th>
+                                <th>Produto</th>
+                                <th>Preço</th>
+                                <th>Endereço</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fornecedorTable">
+                            <tr class="placeholder">
+                                <td colspan="7">Nenhum fornecedor cadastrado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Ordens Section -->
+            <section id="ordens" class="section">
+                <div class="section-header">
+                    <h2>Gerenciamento de Ordens de Compra</h2>
+                </div>
+
+                <div class="form-container">
+                    <h3>Criar Nova Ordem de Compra</h3>
+                    <form id="ordemForm" class="form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="idFornecedor">Fornecedor</label>
+                                <select id="idFornecedor" name="idFornecedor" required>
+                                    <option value="">Selecione um fornecedor...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="idItem">ID do Item</label>
+                                <input type="number" id="idItem" name="idItem" min="1" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="quantidade">Quantidade</label>
+                                <input type="number" id="quantidade" name="quantidade" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="valorUnitario">Valor Unitário (R$)</label>
+                                <input type="number" id="valorUnitario" name="valorUnitario" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Criar Ordem</button>
+                    </form>
+                </div>
+
+                <div class="table-container">
+                    <h3>Lista de Ordens de Compra</h3>
+                    <div class="toolbar">
+                        <input type="text" id="searchOrdem" class="search-input" placeholder="Buscar ordem...">
+                        <select id="filterStatus" class="filter-select">
+                            <option value="">Filtrar por status...</option>
+                            <option value="PENDENTE">Pendente</option>
+                            <option value="APROVADO">Aprovado</option>
+                            <option value="REJEITADO">Rejeitado</option>
+                            <option value="ENVIADO">Enviado</option>
+                            <option value="ENTREGUE">Entregue</option>
+                        </select>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Item</th>
+                                <th>Quantidade</th>
+                                <th>Valor Unit.</th>
+                                <th>Valor Total</th>
+                                <th>Fornecedor</th>
+                                <th>Status</th>
+                                <th>Data</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordemTable">
+                            <tr class="placeholder">
+                                <td colspan="9">Nenhuma ordem cadastrada</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Estoque Section -->
+            <section id="estoque" class="section">
+                <div class="section-header">
+                    <h2>Gerenciamento de Estoque</h2>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="card">
+                        <h3>Total de Itens</h3>
+                        <p class="card-value">3</p>
+                    </div>
+                    <div class="card">
+                        <h3>Itens Disponíveis</h3>
+                        <p class="card-value">650</p>
+                    </div>
+                    <div class="card">
+                        <h3>Itens Reservados</h3>
+                        <p class="card-value">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Valor Total</h3>
+                        <p class="card-value">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <div class="form-container">
+                    <h3>Reservar Material</h3>
+                    <form id="reservaForm" class="form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="idMaterialReserva">Material</label>
+                                <select id="idMaterialReserva" name="idMaterialReserva" required>
+                                    <option value="">Selecione um material...</option>
+                                    <option value="1">Aço Inox</option>
+                                    <option value="2">Parafusos M10</option>
+                                    <option value="3">Borracha Industrial</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="qtdReserva">Quantidade</label>
+                                <input type="number" id="qtdReserva" name="qtdReserva" min="1" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Reservar Material</button>
+                    </form>
+                </div>
+
+                <div class="table-container">
+                    <h3>Inventário do Estoque</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Material</th>
+                                <th>Quantidade</th>
+                                <th>Disponível</th>
+                                <th>Reservado</th>
+                                <th>Localização</th>
+                            </tr>
+                        </thead>
+                        <tbody id="estoqueTable">
+                            <tr>
+                                <td>1</td>
+                                <td>Aço Inox</td>
+                                <td>100</td>
+                                <td><span class="badge badge-success">100</span></td>
+                                <td>0</td>
+                                <td>Galpão A - Prateleira 1</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Parafusos M10</td>
+                                <td>500</td>
+                                <td><span class="badge badge-success">500</span></td>
+                                <td>0</td>
+                                <td>Galpão B - Prateleira 5</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Borracha Industrial</td>
+                                <td>50</td>
+                                <td><span class="badge badge-success">50</span></td>
+                                <td>0</td>
+                                <td>Galpão C - Prateleira 2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Produção Section -->
+            <section id="producao" class="section">
+                <div class="section-header">
+                    <h2>Gerenciamento de Produção</h2>
+                </div>
+
+                <div class="form-container">
+                    <h3>Criar Pedido de Material</h3>
+                    <form id="pedidoForm" class="form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="idMaterialPedido">Material</label>
+                                <select id="idMaterialPedido" name="idMaterialPedido" required>
+                                    <option value="">Selecione um material...</option>
+                                    <option value="1">Aço Inox</option>
+                                    <option value="2">Parafusos M10</option>
+                                    <option value="3">Borracha Industrial</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="qtdPedido">Quantidade</label>
+                                <input type="number" id="qtdPedido" name="qtdPedido" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="prioridade">Prioridade</label>
+                                <select id="prioridade" name="prioridade" required>
+                                    <option value="1">Baixa</option>
+                                    <option value="2">Média</option>
+                                    <option value="3">Alta</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Criar Pedido</button>
+                    </form>
+                </div>
+
+                <div class="table-container">
+                    <h3>Pedidos de Produção Pendentes</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID Pedido</th>
+                                <th>Material</th>
+                                <th>Quantidade</th>
+                                <th>Prioridade</th>
+                                <th>Data Solicitação</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="producaoTable">
+                            <tr>
+                                <td>#1</td>
+                                <td>Aço Inox</td>
+                                <td>50</td>
+                                <td><span class="badge badge-danger">ALTA</span></td>
+                                <td>04/12/2025</td>
+                                <td><span class="badge badge-warning">PENDENTE</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-info">Detalhes</button>
+                                    <button class="btn btn-sm btn-success">Aprovar</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#2</td>
+                                <td>Parafusos M10</td>
+                                <td>200</td>
+                                <td><span class="badge badge-info">MÉDIA</span></td>
+                                <td>04/12/2025</td>
+                                <td><span class="badge badge-warning">PENDENTE</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-info">Detalhes</button>
+                                    <button class="btn btn-sm btn-success">Aprovar</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Financeiro Section -->
+            <section id="financeiro" class="section">
+                <div class="section-header">
+                    <h2>Gerenciamento Financeiro</h2>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="card">
+                        <h3>Saldo Disponível</h3>
+                        <p class="card-value text-success">R$ 100.000,00</p>
+                    </div>
+                    <div class="card">
+                        <h3>Contas a Pagar</h3>
+                        <p class="card-value">R$ 0,00</p>
+                    </div>
+                    <div class="card">
+                        <h3>Ordens Aprovadas</h3>
+                        <p class="card-value">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Ordens Pendentes</h3>
+                        <p class="card-value text-warning">0</p>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3>Contas a Pagar</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID Ordem</th>
+                                <th>Fornecedor</th>
+                                <th>Valor</th>
+                                <th>Data Vencimento</th>
+                                <th>Status</th>
+                                <th>Dias Restantes</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="financeiroTable">
+                            <tr class="placeholder">
+                                <td colspan="7">Nenhuma conta a pagar registrada</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Relatórios Section -->
+            <section id="relatorios" class="section">
+                <div class="section-header">
+                    <h2>Relatórios</h2>
+                </div>
+
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <h3>Relatório de Fornecedores</h3>
+                        <p>Análise completa dos fornecedores cadastrados, histórico de compras e desempenho.</p>
+                        <button class="btn btn-primary btn-block">Gerar PDF</button>
+                    </div>
+                    <div class="report-card">
+                        <h3>Relatório de Ordens</h3>
+                        <p>Detalhamento de todas as ordens de compra, status e datas de entrega.</p>
+                        <button class="btn btn-primary btn-block">Gerar PDF</button>
+                    </div>
+                    <div class="report-card">
+                        <h3>Relatório de Estoque</h3>
+                        <p>Inventário completo com quantidades, valores e movimentações.</p>
+                        <button class="btn btn-primary btn-block">Gerar PDF</button>
+                    </div>
+                    <div class="report-card">
+                        <h3>Relatório Financeiro</h3>
+                        <p>Análise financeira com saldo, contas a pagar e fluxo de caixa.</p>
+                        <button class="btn btn-primary btn-block">Gerar PDF</button>
+                    </div>
+                    <div class="report-card">
+                        <h3>Relatório de Integração</h3>
+                        <p>Status de integração com módulos de produção, estoque e financeiro.</p>
+                        <button class="btn btn-primary btn-block">Gerar PDF</button>
+                    </div>
+                    <div class="report-card">
+                        <h3>Estatísticas do Sistema</h3>
+                        <p>Gráficos e estatísticas gerais do sistema de compras.</p>
+                        <button class="btn btn-primary btn-block">Gerar PDF</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Sistema de Gerenciamento de Compras. Desenvolvido em C++17 com integração de módulos ERP.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
