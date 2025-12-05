@@ -125,6 +125,24 @@ Depois de abrir uma vez com `?api=...`, a URL fica salva no navegador (localStor
 2. Verificar se interface carrega corretamente
 3. Compilar e rodar o backend C++ para funcionalidade completa
 
+## 📦 Download rápido do backend
+
+- Página com download: https://sanderrosa.github.io/POO-PROJETO-FINAL/downloads/
+- Link direto: https://sanderrosa.github.io/POO-PROJETO-FINAL/downloads/backend.zip
+
+Como usar após baixar:
+```
+python3 servidor.py
+```
+Ou
+```
+bash iniciar_servidor.sh
+```
+Depois abra a interface passando a URL da API (ajuste SEU_HOST/IP):
+```
+https://sanderrosa.github.io/POO-PROJETO-FINAL/?api=http://SEU_HOST:8080/api
+```
+
 ## ⚠️ Status Atual
 
 **Configuração**: ✅ Completa
