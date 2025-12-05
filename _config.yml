@@ -6,8 +6,7 @@ show_downloads: false
 repository_url: https://github.com/SanderRosa/POO-PROJETO-FINAL
 
 # Configurações de GitHub Pages
-plugins:
-  - jekyll-default-layout
+markdown: kramdown
 
 # Configurações de build
 exclude:
@@ -16,4 +15,3 @@ exclude:
   - 'MODULO DE COMPRAS/include/'
   - '.git/'
   - '.vscode/'
-  - 'README.md'
