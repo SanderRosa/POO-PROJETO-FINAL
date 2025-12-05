@@ -75,12 +75,36 @@ Sem precisar de:
 
 ## 🔌 Integração Backend
 
-A interface tenta conectar a um backend em `http://localhost:8080/api`
+A interface web conecta a um servidor HTTP REST que fornece dados dinâmicos.
+
+### Servidor em Execução
+
+Para ativar o backend e deixar a interface completamente funcional:
+
+```bash
+cd "MODULO DE COMPRAS"
+python3 servidor.py
+```
+
+Ou use o script:
+
+```bash
+cd "MODULO DE COMPRAS"
+bash iniciar_servidor.sh
+```
 
 ### Estados de Conexão:
-- 🟢 **Online** - Backend ativo e respondendo
-- 🔴 **Offline** - Backend indisponível (modo leitura)
-- ⚠️ **Erro** - Problema na conexão
+- 🟢 **Online** - Backend ativo em `http://localhost:8080/api`
+- 🔴 **Offline** - Backend indisponível (modo leitura de dados)
+
+### Endpoints Disponíveis
+- `GET  /api/fornecedores` - Lista fornecedores cadastrados
+- `GET  /api/ordens` - Lista ordens de compra
+- `GET  /api/estoque` - Informações de estoque
+- `GET  /api/financeiro` - Dados financeiros
+- `POST /api/fornecedores` - Criar novo fornecedor
+- `POST /api/ordens` - Criar nova ordem de compra
+- `GET  /api/status` - Verificar status do servidor
 
 ## 📚 Próximos Passos
 
