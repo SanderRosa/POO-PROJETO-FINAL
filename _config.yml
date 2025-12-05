@@ -1,0 +1,19 @@
+title: Sistema de Gerenciamento de Compras
+description: ERP de Compras desenvolvido em C++ com Interface Web
+theme: jekyll-theme-minimal
+logo: 
+show_downloads: false
+repository_url: https://github.com/SanderRosa/POO-PROJETO-FINAL
+
+# Configurações de GitHub Pages
+plugins:
+  - jekyll-default-layout
+
+# Configurações de build
+exclude:
+  - 'MODULO DE COMPRAS/bin/'
+  - 'MODULO DE COMPRAS/src/'
+  - 'MODULO DE COMPRAS/include/'
+  - '.git/'
+  - '.vscode/'
+  - 'README.md'
