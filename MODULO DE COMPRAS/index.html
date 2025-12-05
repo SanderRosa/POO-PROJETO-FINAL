@@ -379,6 +379,11 @@
             const saved = localStorage.getItem('apiUrl');
             if (saved) return saved;
 
+            // Modo offline (abrindo via file:// ou servidor local da pasta baixada)
+            if (window.location.protocol === 'file:') {
+                return './api';
+            }
+
             // Se estiver rodando no GitHub Pages, use API estática hospedada no próprio Pages
             const isPages = window.location.hostname.includes('github.io');
             if (isPages) {

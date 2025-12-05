@@ -152,6 +152,25 @@ Para que a interface mostre “Online” mesmo sem rodar nada local, há um back
 
 A interface já detecta automaticamente quando está no GitHub Pages e usa esses arquivos. Para operações de escrita (POST), ainda é necessário rodar o backend local ou expô-lo via túnel.
 
+## 📴 Uso offline (sem internet)
+
+1. Baixe o repositório (ou o zip) para uma pasta local.
+2. No terminal, dentro da pasta raiz do projeto, rode um servidor local simples:
+    ```bash
+    python3 -m http.server 8080
+    ```
+    (ou qualquer servidor estático equivalente)
+3. Abra no navegador:
+    ```
+    http://localhost:8080/
+    ```
+    - O redirecionamento leva para `MODULO DE COMPRAS/index.html`.
+    - A página detecta que está em modo offline e usa `./api` com os JSON estáticos.
+
+Sem servidor (abrindo direto em `file://`):
+- A página também funciona em modo leitura, usando `./api` para ler os JSON locais.
+- Para evitar bloqueios de CORS/carregamento em alguns navegadores, o servidor local (`python -m http.server`) é recomendado.
+
 ## ⚠️ Status Atual
 
 **Configuração**: ✅ Completa
