@@ -39,6 +39,16 @@
     </div>
 
     <div class="card">
+      <a class="btn" href="./site-offline.zip" download>⬇️ Baixar site-offline.zip</a>
+      <p class="small">Pacote completo para uso offline: interface, API estática, scripts e binários.</p>
+      <p class="small">Como usar offline (somente leitura):</p>
+      <pre>python3 -m http.server 8080
+# depois abra
+http://localhost:8080/</pre>
+      <p class="small">A página detecta modo offline e usa <code>./api</code> (JSON locais).</p>
+    </div>
+
+    <div class="card">
       <h2>Como rodar</h2>
       <p>1) Descompacte o zip em qualquer pasta</p>
       <p>2) No terminal, dentro da pasta descompactada, rode:</p>

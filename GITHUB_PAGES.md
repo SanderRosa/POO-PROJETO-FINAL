@@ -129,6 +129,7 @@ Depois de abrir uma vez com `?api=...`, a URL fica salva no navegador (localStor
 
 - Página com download: https://sanderrosa.github.io/POO-PROJETO-FINAL/downloads/
 - Link direto: https://sanderrosa.github.io/POO-PROJETO-FINAL/downloads/backend.zip
+- Pacote completo offline: https://sanderrosa.github.io/POO-PROJETO-FINAL/downloads/site-offline.zip
 
 Como usar após baixar:
 ```
