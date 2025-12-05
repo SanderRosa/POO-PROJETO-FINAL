@@ -93,6 +93,19 @@ cd "MODULO DE COMPRAS"
 bash iniciar_servidor.sh
 ```
 
+#### Usar um host diferente (LAN ou túnel)
+Ao abrir a interface no GitHub Pages, a página não consegue acessar `localhost` da sua máquina. Passe a URL da API na query string:
+
+```
+https://sanderrosa.github.io/POO-PROJETO-FINAL/?api=http://SEU_HOST:8080/api
+```
+
+Exemplos de `SEU_HOST`:
+- IP da sua máquina na rede local (ex.: `http://192.168.0.12:8080/api`)
+- URL de túnel (ngrok, localhost.run, etc.)
+
+Depois de abrir uma vez com `?api=...`, a URL fica salva no navegador (localStorage).
+
 ### Estados de Conexão:
 - 🟢 **Online** - Backend ativo em `http://localhost:8080/api`
 - 🔴 **Offline** - Backend indisponível (modo leitura de dados)

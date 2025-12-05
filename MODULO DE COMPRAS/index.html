@@ -253,6 +253,9 @@
                     <span id="backend-status-dot" class="status-dot dot-red"></span>
                     <span id="backend-status-text">Desconectado</span>
                 </div>
+                <div style="margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-light); word-break: break-all;">
+                    <span id="backend-url">API: carregando...</span>
+                </div>
             </div>
         </div>
     </aside>
@@ -364,8 +367,22 @@
         // Inicializa os ícones da biblioteca Lucide
         lucide.createIcons();
         
-        // Define a URL base da API do Backend C++
-        const API_URL = 'http://localhost:8080/api';
+        // Define dinamicamente a URL base da API
+        function resolverApiUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const apiParam = params.get('api');
+            if (apiParam) {
+                const clean = apiParam.replace(/\/$/, '');
+                localStorage.setItem('apiUrl', clean);
+                return clean;
+            }
+            const saved = localStorage.getItem('apiUrl');
+            if (saved) return saved;
+            return 'http://localhost:8080/api';
+        }
+
+        const API_URL = resolverApiUrl();
+        document.getElementById('backend-url').innerText = `API: ${API_URL}`;
 
         // --- SISTEMA DE ROTEAMENTO (SPA Simples) ---
         // Alterna a visibilidade das divs baseada no botão clicado
@@ -414,24 +431,33 @@
             const estoque = await fetchAPI('/estoque');
             if (estoque) {
                 const tbody = document.getElementById('lista-estoque');
-                tbody.innerHTML = estoque.map(item => `
-                    <tr>
-                        <td>#${item.id}</td>
-                        <td>${item.nome}</td>
-                        <td>${item.quantidade}</td>
-                        <td>${item.quantidade < 50 ? '<span class="badge bg-red">Baixo</span>' : '<span class="badge bg-green">OK</span>'}</td>
-                    </tr>
-                `).join('');
-                // Atualiza contador no dashboard
-                document.getElementById('dash-estoque').innerText = estoque.reduce((acc, i) => acc + i.quantidade, 0);
+                if (Array.isArray(estoque)) {
+                    tbody.innerHTML = estoque.map(item => `
+                        <tr>
+                            <td>#${item.id ?? '-'}</td>
+                            <td>${item.nome ?? item.material ?? '-'}</td>
+                            <td>${item.quantidade ?? item.qtd ?? 0}</td>
+                            <td>${(item.quantidade ?? item.qtd ?? 0) < 50 ? '<span class="badge bg-red">Baixo</span>' : '<span class="badge bg-green">OK</span>'}</td>
+                        </tr>
+                    `).join('');
+                    document.getElementById('dash-estoque').innerText = estoque.reduce((acc, i) => acc + (Number(i.quantidade ?? i.qtd ?? 0)), 0);
+                } else {
+                    tbody.innerHTML = `
+                        <tr><td colspan="4">Itens: ${estoque.total_itens ?? '-'} | Valor total: R$ ${(estoque.valor_total ?? 0).toFixed(2)}</td></tr>
+                    `;
+                    document.getElementById('dash-estoque').innerText = estoque.total_itens ?? 0;
+                }
             }
 
             // 2. Busca e Renderiza Fornecedores
             const fornecedores = await fetchAPI('/fornecedores');
             if (fornecedores) {
-                document.getElementById('lista-fornecedores').innerHTML = fornecedores.map(f => `
-                    <tr><td>#${f.id}</td><td>${f.nome}</td><td>${f.produto}</td><td>R$ ${f.preco.toFixed(2)}</td><td>${f.cnpj}</td></tr>
-                `).join('');
+                document.getElementById('lista-fornecedores').innerHTML = fornecedores.map(f => {
+                    const produto = f.produto ?? f.email ?? '-';
+                    const preco = Number(f.preco ?? f.valor ?? 0);
+                    const cnpj = f.cnpj ?? f.endereco ?? f.telefone ?? '-';
+                    return `<tr><td>#${f.id ?? '-'}</td><td>${f.nome ?? '-'}</td><td>${produto}</td><td>R$ ${preco.toFixed(2)}</td><td>${cnpj}</td></tr>`;
+                }).join('');
                 document.getElementById('dash-fornecedores').innerText = fornecedores.length;
             }
 
@@ -439,12 +465,12 @@
             const ordens = await fetchAPI('/ordens');
             if (ordens) {
                 document.getElementById('lista-ordens').innerHTML = ordens.map(o => {
-                    // Define a cor da badge baseado no status numérico (vindo do Enum C++)
+                    const statusVal = Number(o.status ?? 0);
                     let badge = 'bg-yellow';
-                    if(o.status === 1) badge = 'bg-green'; // APROVADO
-                    if(o.status === 2) badge = 'bg-red';   // REJEITADO
-                    const statusMap = ["Pendente", "Aprovado", "Rejeitado", "Enviado", "Entregue"];
-                    return `<tr><td>#${o.id}</td><td>Item #${o.idItem}</td><td>${o.quantidade}</td><td>R$ ${(o.valor).toFixed(2)}</td><td><span class="badge ${badge}">${statusMap[o.status] || 'Desconhecido'}</span></td></tr>`;
+                    if(statusVal === 1) badge = 'bg-green';
+                    if(statusVal === 2) badge = 'bg-red';
+                    const statusMap = ["Pendente", "Aprovado", "Rejeitado", "Enviado", "Entregue", o.status];
+                    return `<tr><td>#${o.id ?? '-'}</td><td>${o.item ?? o.descricao ?? '-'}</td><td>${o.quantidade ?? 0}</td><td>R$ ${(Number(o.valor ?? 0)).toFixed(2)}</td><td><span class="badge ${badge}">${statusMap[statusVal] || 'Desconhecido'}</span></td></tr>`;
                 }).join('');
                 document.getElementById('dash-ordens').innerText = ordens.length;
             }
@@ -452,7 +478,8 @@
             // 4. Busca e Renderiza Saldo Financeiro
             const financeiro = await fetchAPI('/financeiro');
             if (financeiro) {
-                document.getElementById('dash-saldo').innerText = `R$ ${financeiro.saldo.toFixed(2)}`;
+                const saldo = Number(financeiro.saldo ?? financeiro.saldo_disponivel ?? 0);
+                document.getElementById('dash-saldo').innerText = `R$ ${saldo.toFixed(2)}`;
             }
         }
 
