@@ -378,6 +378,17 @@
             }
             const saved = localStorage.getItem('apiUrl');
             if (saved) return saved;
+
+            // Se estiver rodando no GitHub Pages, use API estática hospedada no próprio Pages
+            const isPages = window.location.hostname.includes('github.io');
+            if (isPages) {
+                const base = window.location.pathname.startsWith('/POO-PROJETO-FINAL')
+                    ? '/POO-PROJETO-FINAL'
+                    : '';
+                return `${base}/api`;
+            }
+
+            // fallback local
             return 'http://localhost:8080/api';
         }
 
@@ -408,16 +419,25 @@
 
         // Função genérica para fazer requisições GET
         async function fetchAPI(endpoint) {
+            const tryFetch = async (url) => {
+                const res = await fetch(url);
+                return res.ok ? res.json() : null;
+            };
+
             try {
-                const response = await fetch(`${API_URL}${endpoint}`);
-                if (!response.ok) throw new Error('Erro na rede');
-                
-                // Se der certo, mostra status Online verde
-                document.getElementById('backend-status-dot').className = 'status-dot dot-green';
-                document.getElementById('backend-status-text').innerText = 'Online';
-                return await response.json();
+                let data = await tryFetch(`${API_URL}${endpoint}`);
+                if (!data && !endpoint.endsWith('.json')) {
+                    data = await tryFetch(`${API_URL}${endpoint}.json`);
+                }
+
+                if (data) {
+                    document.getElementById('backend-status-dot').className = 'status-dot dot-green';
+                    document.getElementById('backend-status-text').innerText = 'Online';
+                    return data;
+                }
+
+                throw new Error('Erro na rede');
             } catch (error) {
-                // Se der erro, mostra status Offline vermelho
                 console.error("Backend offline:", error);
                 document.getElementById('backend-status-dot').className = 'status-dot dot-red';
                 document.getElementById('backend-status-text').innerText = 'Offline';

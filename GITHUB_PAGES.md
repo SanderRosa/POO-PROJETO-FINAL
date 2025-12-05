@@ -143,6 +143,15 @@ Depois abra a interface passando a URL da API (ajuste SEU_HOST/IP):
 https://sanderrosa.github.io/POO-PROJETO-FINAL/?api=http://SEU_HOST:8080/api
 ```
 
+## 🔄 Backend estático (somente leitura)
+
+Para que a interface mostre “Online” mesmo sem rodar nada local, há um backend estático hospedado no próprio GitHub Pages:
+
+- API: `https://sanderrosa.github.io/POO-PROJETO-FINAL/api`
+- Endpoints em `.json` (ex.: `/fornecedores.json`, `/ordens.json`, `/estoque.json`, `/financeiro.json`, `/status.json`)
+
+A interface já detecta automaticamente quando está no GitHub Pages e usa esses arquivos. Para operações de escrita (POST), ainda é necessário rodar o backend local ou expô-lo via túnel.
+
 ## ⚠️ Status Atual
 
 **Configuração**: ✅ Completa

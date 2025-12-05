@@ -1,0 +1,6 @@
+[
+  {"id":1,"nome":"Parafusos Silva","produto":"Parafuso M3","preco":1.20,"cnpj":"12.345.678/0001-01"},
+  {"id":2,"nome":"Fixar Comércio","produto":"Parafuso M4","preco":1.35,"cnpj":"23.456.789/0001-02"},
+  {"id":3,"nome":"Rápido Parafusos","produto":"Parafuso M5","preco":1.50,"cnpj":"34.567.890/0001-03"},
+  {"id":4,"nome":"Metalúrgica Forte","produto":"Parafuso M6","preco":1.90,"cnpj":"45.678.901/0001-04"}
+]

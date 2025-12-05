@@ -1,0 +1,5 @@
+[
+  {"id":1,"item":"Parafuso M3","quantidade":120,"valor":180.00,"status":0},
+  {"id":2,"item":"Parafuso M4","quantidade":80,"valor":108.00,"status":1},
+  {"id":3,"item":"Parafuso M5","quantidade":200,"valor":300.00,"status":3}
+]
