@@ -6,18 +6,15 @@
     <title>Sistema de Gerenciamento de Compras</title>
     <script>
         // Redireciona para a interface no caminho correto
-        const path = window.location.pathname;
-        const isGitHubPages = path.includes('/POO-PROJETO-FINAL/');
-        
-        if (isGitHubPages) {
-            window.location.href = '/POO-PROJETO-FINAL/MODULO%20DE%20COMPRAS/index.html';
-        } else {
-            window.location.href = './MODULO%20DE%20COMPRAS/index.html';
-        }
+        const isGitHubPages = window.location.hostname.includes('github.io');
+        const base = isGitHubPages && window.location.pathname.startsWith('/POO-PROJETO-FINAL')
+            ? '/POO-PROJETO-FINAL'
+            : '';
+        window.location.href = `${base}/interface/index.html`;
     </script>
 </head>
 <body>
     <h1>Redirecionando para a interface...</h1>
-    <p>Se não for redirecionado automaticamente, <a href="./MODULO%20DE%20COMPRAS/index.html">clique aqui</a>.</p>
+    <p>Se não for redirecionado automaticamente, <a href="./interface/index.html">clique aqui</a>.</p>
 </body>
 </html>
