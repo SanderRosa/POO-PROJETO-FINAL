@@ -13,14 +13,35 @@
 
 #ifdef _WIN32
     #include <winsock2.h>
-    #pragma comment(lib, "ws2_32.lib")
+    #pragma comment(lib, "ws2_32")
 #else
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <unistd.h>
-#include <cstring>
+    #include <cstring>
 #endif
 
+#ifdef _WIN32
+using socket_t = SOCKET;
+inline bool initSockets() { WSADATA wsa; return WSAStartup(MAKEWORD(2, 2), &wsa) == 0; }
+inline void closeSocket(socket_t s) { closesocket(s); }
+using socklen_arg = int;
+#else
+using socket_t = int;
+inline bool initSockets() { return true; }
+inline void closeSocket(socket_t s) { close(s); }
+using socklen_arg = socklen_t;
+#endif
+
+#ifndef SERVIDOR_STANDALONE
+    #ifdef _WIN32
+        #define SERVIDOR_STANDALONE 0
+    #else
+        #define SERVIDOR_STANDALONE 1
+    #endif
+#endif
+
+#if SERVIDOR_STANDALONE
 namespace {
 std::string jsonEscape(const std::string& in) {
     std::string out;
@@ -156,6 +177,7 @@ std::string jsonOrdens(const std::vector<Ordem>& v) {
         os << "{";
         os << "\"id\":" << o.id << ",";
         os << "\"item\":\"Item " << o.idItem << "\",";
+        os << "\"idItem\":" << o.idItem << ",";
         os << "\"quantidade\":" << o.quantidade << ",";
         os << "\"valor\":" << o.valor << ",";
         os << "\"status\":" << o.status << ",";
@@ -249,9 +271,9 @@ std::string handlePost(const std::string& pathWithQuery, std::vector<Fornecedor>
         if (appendFornecedor(fornecedoresFile, params, nextId)) {
             Fornecedor f{nextId, params["nome"], params["cnpj"], params["endereco"], params["produto"], std::stod(params["preco"])};
             fornec.push_back(f);
-            return httpResponse("{\"sucesso\":true}\");
+            return httpResponse("{\"sucesso\":true}");
         }
-        return httpResponse("{\"sucesso\":false}\");
+        return httpResponse("{\"sucesso\":false}");
     }
 
     if (path == "/api/ordens") {
@@ -261,23 +283,28 @@ std::string handlePost(const std::string& pathWithQuery, std::vector<Fornecedor>
         if (appendOrdem(ordensFile, params, nextId)) {
             Ordem o{nextId, std::stoi(params["idItem"]), std::stoi(params["quantidade"]), std::stod(params["valor"]), std::stoi(params["idFornecedor"]), 0, ""};
             ordens.push_back(o);
-            return httpResponse("{\"sucesso\":true}\");
+            return httpResponse("{\"sucesso\":true}");
         }
-        return httpResponse("{\"sucesso\":false}\");
+        return httpResponse("{\"sucesso\":false}");
     }
 
     return notFound();
 }
 
 void serve(int port, const std::string& fornecedoresFile, const std::string& ordensFile) {
-    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (!initSockets()) {
+        std::cerr << "Erro ao inicializar sockets\n";
+        return;
+    }
+
+    socket_t server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
         std::cerr << "Erro ao criar socket\n";
         return;
     }
 
     int opt = 1;
-    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&opt), sizeof(opt));
 
     sockaddr_in address{};
     address.sin_family = AF_INET;
@@ -286,13 +313,13 @@ void serve(int port, const std::string& fornecedoresFile, const std::string& ord
 
     if (bind(server_fd, (sockaddr*)&address, sizeof(address)) < 0) {
         std::cerr << "Erro ao fazer bind. Porta em uso?\n";
-        close(server_fd);
+        closeSocket(server_fd);
         return;
     }
 
     if (listen(server_fd, 10) < 0) {
         std::cerr << "Erro ao escutar\n";
-        close(server_fd);
+        closeSocket(server_fd);
         return;
     }
 
@@ -305,13 +332,13 @@ void serve(int port, const std::string& fornecedoresFile, const std::string& ord
 
     while (true) {
         sockaddr_in client{};
-        socklen_t len = sizeof(client);
-        int client_fd = accept(server_fd, (sockaddr*)&client, &len);
+        socklen_arg len = static_cast<socklen_arg>(sizeof(client));
+        socket_t client_fd = accept(server_fd, (sockaddr*)&client, &len);
         if (client_fd < 0) continue;
 
         char buffer[8192];
         int n = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-        if (n <= 0) { close(client_fd); continue; }
+        if (n <= 0) { closeSocket(client_fd); continue; }
         buffer[n] = '\0';
         std::string req(buffer);
 
@@ -331,7 +358,7 @@ void serve(int port, const std::string& fornecedoresFile, const std::string& ord
         }
 
         send(client_fd, response.c_str(), response.size(), 0);
-        close(client_fd);
+        closeSocket(client_fd);
     }
 }
 } // namespace
@@ -342,3 +369,4 @@ int main() {
     serve(8080, fornecedoresFile, ordensFile);
     return 0;
 }
+#endif // SERVIDOR_STANDALONE

@@ -1,343 +1,130 @@
-<!-- Declaração do tipo de documento HTML5 -->
 <!DOCTYPE html>
-<!-- Define o idioma da página como Português do Brasil -->
 <html lang="pt-BR">
 <head>
-    <!-- Configuração de codificação de caracteres UTF-8 para suportar acentos -->
     <meta charset="UTF-8">
-    <!-- Configuração da viewport para responsividade em dispositivos móveis -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Título que aparece na aba do navegador -->
-    <title>ERP Compras - C++ Backend</title>
-    
-    <!-- Importação da biblioteca de ícones Lucide via CDN -->
+    <title>ERP Compras</title>
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Estilos CSS embutidos -->
     <style>
-        /* Variáveis CSS para manter consistência de cores e tema em todo o site */
         :root {
-            --primary: #2563eb;      /* Azul principal */
-            --bg: #f3f4f6;           /* Cor de fundo da página */
-            --surface: #ffffff;      /* Cor de fundo dos cartões/paineis */
-            --text: #1f2937;         /* Cor do texto principal */
-            --text-light: #6b7280;   /* Cor do texto secundário */
-            --border: #e5e7eb;       /* Cor das bordas */
-            --success: #10b981;      /* Cor de sucesso (verde) */
-            --danger: #ef4444;       /* Cor de erro/perigo (vermelho) */
-            --warning: #f59e0b;      /* Cor de aviso (amarelo) */
+            --primary: #3b82f6;
+            --bg: #111827;
+            --surface: #1f2937;
+            --text: #f9fafb;
+            --text-light: #9ca3af;
+            --border: #374151;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --hover-bg: #374151;
         }
-
-        /* Reset básico de CSS e definição da fonte padrão */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        
-        /* Estilo do corpo da página: layout flexível para sidebar e conteúdo */
         body { background-color: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
-
-        /* --- Barra Lateral (Sidebar) --- */
-        aside { 
-            width: 260px; 
-            background: var(--surface); 
-            border-right: 1px solid var(--border); 
-            padding: 1.5rem; 
-            position: fixed; /* Fixa a barra na esquerda */
-            height: 100%; 
-        }
-        
-        /* Estilo da marca/logo no topo da sidebar */
-        .brand { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            margin-bottom: 2rem; 
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--bg);
-            font-size: 1.25rem; 
-            font-weight: 800; 
-            color: var(--primary);
-            gap: 0.5rem;
-        }
-        
-        /* Estilo dos botões de navegação */
-        nav button { 
-            width: 100%; 
-            text-align: left; 
-            padding: 0.75rem 1rem; 
-            border: none; 
-            background: none; 
-            color: var(--text-light); 
-            cursor: pointer; 
-            border-radius: 0.5rem; 
-            margin-bottom: 0.5rem;
-            display: flex; 
-            align-items: center; 
-            gap: 0.75rem; 
-            font-weight: 500; 
-            transition: all 0.2s; /* Animação suave ao passar o mouse */
-        }
-        
-        /* Efeito hover e estado ativo dos botões de navegação */
-        nav button:hover, nav button.active { 
-            background-color: #eff6ff; 
-            color: var(--primary); 
-        }
-        
-        /* --- Conteúdo Principal --- */
-        main { 
-            margin-left: 260px; /* Margem para não ficar atrás da sidebar */
-            padding: 2rem; 
-            width: 100%; 
-        }
-        
-        /* Cabeçalho da área principal */
-        header { 
-            margin-bottom: 2rem; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-        }
-        
-        h1 { font-size: 1.5rem; font-weight: 700; }
-        
-        /* --- Cartões do Dashboard --- */
-        .grid-cards { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Grid responsivo */
-            gap: 1.5rem; 
-            margin-bottom: 2rem; 
-        }
-        
-        .card { 
-            background: var(--surface); 
-            padding: 1.5rem; 
-            border-radius: 1rem; 
-            border: 1px solid var(--border); 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
-        }
-        
+        aside { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; position: fixed; height: 100%; }
+        .brand { display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); font-size: 1.25rem; font-weight: 800; color: var(--primary); gap: 0.5rem; }
+        nav button { width: 100%; text-align: left; padding: 0.75rem 1rem; border: none; background: none; color: var(--text-light); cursor: pointer; border-radius: 0.5rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; transition: all 0.2s; }
+        nav button:hover, nav button.active { background-color: rgba(59, 130, 246, 0.1); color: var(--primary); }
+        main { margin-left: 260px; padding: 2rem; width: 100%; }
+        header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+        h1 { font-size: 1.5rem; font-weight: 700; color: var(--text); }
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
         .card h3 { font-size: 0.875rem; color: var(--text-light); margin-bottom: 0.5rem; }
         .card .value { font-size: 1.875rem; font-weight: 700; color: var(--text); }
-        
-        /* --- Tabelas de Dados --- */
-        .table-container { 
-            background: var(--surface); 
-            border-radius: 1rem; 
-            border: 1px solid var(--border); 
-            overflow: hidden; 
-        }
-        
+        .table-container { background: var(--surface); border-radius: 1rem; border: 1px solid var(--border); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        
-        th { 
-            background: #f9fafb; 
-            padding: 1rem; 
-            font-size: 0.75rem; 
-            text-transform: uppercase; 
-            color: var(--text-light); 
-            font-weight: 600; 
-        }
-        
-        td { 
-            padding: 1rem; 
-            border-top: 1px solid var(--border); 
-            font-size: 0.9rem; 
-        }
-        
-        tr:hover { background-color: #f9fafb; } /* Destaque na linha ao passar o mouse */
-
-        /* --- Badges (Etiquetas de Status) --- */
-        .badge { 
-            padding: 0.25rem 0.75rem; 
-            border-radius: 9999px; 
-            font-size: 0.75rem; 
-            font-weight: 600; 
-        }
-        .bg-green { background: #d1fae5; color: #065f46; }
-        .bg-red { background: #fee2e2; color: #991b1b; }
-        .bg-yellow { background: #fef3c7; color: #92400e; }
-
-        /* --- Formulários --- */
-        .form-section { 
-            background: var(--surface); 
-            padding: 1.5rem; 
-            border-radius: 1rem; 
-            border: 1px solid var(--border); 
-            margin-bottom: 2rem; 
-        }
-        
-        .form-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 1rem; 
-            margin-bottom: 1rem; 
-        }
-        
-        .form-group label { 
-            display: block; 
-            font-size: 0.875rem; 
-            margin-bottom: 0.5rem; 
-            font-weight: 500; 
-        }
-        
-        input, select { 
-            width: 100%; 
-            padding: 0.6rem; 
-            border: 1px solid var(--border); 
-            border-radius: 0.5rem; 
-            outline: none; 
-        }
-        
-        input:focus, select:focus { 
-            border-color: var(--primary); 
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); /* Ring effect */
-        }
-        
-        .btn { 
-            background: var(--primary); 
-            color: white; 
-            border: none; 
-            padding: 0.6rem 1.5rem; 
-            border-radius: 0.5rem; 
-            cursor: pointer; 
-            font-weight: 600; 
-        }
-        
-        .btn:hover { background: #1d4ed8; }
-
-        /* --- Classes Utilitárias --- */
-        .hidden { display: none; } /* Oculta elementos */
-        
-        /* Indicador de status (bolinha colorida) */
-        .status-dot { 
-            width: 10px; 
-            height: 10px; 
-            border-radius: 50%; 
-            display: inline-block; 
-            margin-right: 5px; 
-        }
-        .dot-green { background: var(--success); }
-        .dot-red { background: var(--danger); }
+        th { background: #111827; padding: 1rem; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 600; border-bottom: 1px solid var(--border); }
+        td { padding: 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; color: var(--text); }
+        tr:hover { background-color: var(--hover-bg); }
+        .badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; border: 1px solid; }
+        .bg-green { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
+        .bg-red { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
+        .bg-yellow { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
+        .form-section { background: var(--surface); padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border); margin-bottom: 2rem; }
+        .form-section h3 { margin-bottom: 1.5rem; color: var(--text); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.875rem; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-light); }
+        input, select { width: 100%; padding: 0.6rem; background-color: #111827; border: 1px solid var(--border); border-radius: 0.5rem; outline: none; color: white; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+        .btn { background: var(--primary); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; transition: background-color 0.2s; }
+        .btn:hover { background: #2563eb; }
+        .hidden { display: none; }
+        .sidebar-footer { margin-top: auto; padding-top: 2rem; }
+        .status-box { background: #111827; padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .dot-green { background: var(--success); box-shadow: 0 0 5px var(--success); }
+        .dot-red { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
+        .dot-yellow { background: var(--warning); box-shadow: 0 0 5px var(--warning); }
     </style>
 </head>
 <body>
-
-    <!-- BARRA LATERAL (Navegação) -->
     <aside>
         <div class="brand">
-            <!-- Ícone padrão e nome do sistema (Logo removido conforme solicitado) -->
-            <i data-lucide="package"></i> Modulo de Compras
+            <i data-lucide="package"></i> ERP Compras
         </div>
-        
-        <!-- Menu de Navegação -->
         <nav>
-            <!-- Botões que chamam a função router() para trocar de tela -->
-            <button onclick="router('dashboard')" id="nav-dashboard" class="active">
-                <i data-lucide="layout-dashboard"></i> Dashboard
-            </button>
-            <button onclick="router('fornecedores')" id="nav-fornecedores">
-                <i data-lucide="users"></i> Fornecedores
-            </button>
-            <button onclick="router('ordens')" id="nav-ordens">
-                <i data-lucide="shopping-cart"></i> Ordens de Compra
-            </button>
-            <button onclick="router('estoque')" id="nav-estoque">
-                <i data-lucide="boxes"></i> Estoque
-            </button>
+            <button onclick="router('dashboard')" id="nav-dashboard" class="active"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+            <button onclick="router('fornecedores')" id="nav-fornecedores"><i data-lucide="users"></i> Fornecedores</button>
+            <button onclick="router('ordens')" id="nav-ordens"><i data-lucide="shopping-cart"></i> Ordens de Compra</button>
+            <button onclick="router('estoque')" id="nav-estoque"><i data-lucide="boxes"></i> Estoque</button>
         </nav>
-        
-        <!-- Rodapé da Sidebar com Status do Backend -->
-        <div style="margin-top: auto; padding-top: 2rem;">
-            <div style="background: #eff6ff; padding: 1rem; border-radius: 0.5rem;">
-                <small style="color: var(--primary);">Status do Backend</small>
-                <div style="display: flex; align-items: center; margin-top: 0.5rem; font-weight: 600;">
+        <div class="sidebar-footer">
+            <div class="status-box">
+                <small style="color: var(--text-light);">Status do Backend</small>
+                <div style="display: flex; align-items: center; margin-top: 0.5rem; font-weight: 600; color: var(--text);">
                     <span id="backend-status-dot" class="status-dot dot-red"></span>
                     <span id="backend-status-text">Desconectado</span>
-                </div>
-                <div style="margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-light); word-break: break-all;">
-                    <span id="backend-url">API: carregando...</span>
                 </div>
             </div>
         </div>
     </aside>
 
-    <!-- ÁREA PRINCIPAL -->
     <main>
-        <!-- Cabeçalho com Título e Botão de Atualizar -->
         <header>
             <h1 id="page-title">Visão Geral</h1>
             <button class="btn" onclick="atualizarDados()">Atualizar Dados</button>
         </header>
 
-        <!-- [VIEW 1] DASHBOARD: Visão Geral com Cards -->
         <div id="view-dashboard">
             <div class="grid-cards">
-                <div class="card">
-                    <h3>Saldo Financeiro</h3>
-                    <div class="value" id="dash-saldo">R$ --</div>
-                </div>
-                <div class="card">
-                    <h3>Fornecedores</h3>
-                    <div class="value" id="dash-fornecedores">--</div>
-                </div>
-                <div class="card">
-                    <h3>Itens em Estoque</h3>
-                    <div class="value" id="dash-estoque">--</div>
-                </div>
-                <div class="card">
-                    <h3>Ordens Totais</h3>
-                    <div class="value" id="dash-ordens">--</div>
-                </div>
+                <div class="card"><h3>Saldo Financeiro</h3><div class="value" id="dash-saldo">R$ --</div></div>
+                <div class="card"><h3>Fornecedores</h3><div class="value" id="dash-fornecedores">--</div></div>
+                <div class="card"><h3>Itens em Estoque</h3><div class="value" id="dash-estoque">--</div></div>
+                <div class="card"><h3>Ordens Totais</h3><div class="value" id="dash-ordens">--</div></div>
             </div>
         </div>
 
-        <!-- [VIEW 2] FORNECEDORES: Formulário e Lista -->
         <div id="view-fornecedores" class="hidden">
-            <!-- Formulário de Cadastro -->
             <div class="form-section">
                 <h3>Cadastrar Fornecedor</h3>
-                <!-- onsubmit chama a função JS para enviar dados -->
                 <form id="form-fornecedor" onsubmit="cadastrarFornecedor(event)">
                     <div class="form-grid">
-                        <div class="form-group"><label>Nome</label><input required name="nome" type="text"></div>
-                        <div class="form-group"><label>CNPJ</label><input required name="cnpj" type="text"></div>
-                        <div class="form-group"><label>Endereço</label><input required name="endereco" type="text"></div>
-                        <div class="form-group"><label>Produto</label><input required name="produto" type="text"></div>
-                        <div class="form-group"><label>Preço (R$)</label><input required name="preco" type="number" step="0.01"></div>
+                        <div class="form-group"><label>Nome</label><input required name="nome" type="text" placeholder="Ex: Aços Ltda"></div>
+                        <div class="form-group"><label>CNPJ</label><input required name="cnpj" type="text" placeholder="00.000.000/0000-00"></div>
+                        <div class="form-group"><label>Endereço</label><input required name="endereco" type="text" placeholder="Rua Exemplo, 123"></div>
+                        <div class="form-group"><label>Produto</label><input required name="produto" type="text" placeholder="Ex: Parafusos"></div>
+                        <div class="form-group"><label>Preço (R$)</label><input required name="preco" type="number" step="0.01" placeholder="0.00"></div>
                     </div>
                     <button type="submit" class="btn">Salvar Fornecedor</button>
                 </form>
             </div>
-            <!-- Tabela de Listagem -->
             <div class="table-container">
                 <table>
                     <thead><tr><th>ID</th><th>Nome</th><th>Produto</th><th>Preço</th><th>CNPJ</th></tr></thead>
-                    <tbody id="lista-fornecedores"></tbody> <!-- Preenchido via JS -->
+                    <tbody id="lista-fornecedores"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- [VIEW 3] ORDENS: Formulário de Compra e Lista -->
         <div id="view-ordens" class="hidden">
             <div class="form-section">
                 <h3>Nova Ordem de Compra</h3>
                 <form id="form-ordem" onsubmit="criarOrdem(event)">
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label>Fornecedor (ID)</label>
-                            <input required name="idFornecedor" type="number" placeholder="ID do Fornecedor">
-                        </div>
-                        <div class="form-group">
-                            <label>Item (ID)</label>
-                            <input required name="idItem" type="number" placeholder="ID do Material">
-                        </div>
-                        <div class="form-group">
-                            <label>Quantidade</label>
-                            <input required name="quantidade" type="number" min="1">
-                        </div>
-                        <div class="form-group">
-                            <label>Valor Unit. (R$)</label>
-                            <input required name="valor" type="number" step="0.01">
-                        </div>
+                        <div class="form-group"><label>Fornecedor (ID)</label><input required name="idFornecedor" type="number" placeholder="ID do Fornecedor"></div>
+                        <div class="form-group"><label>Item (ID)</label><input required name="idItem" type="number" placeholder="ID do Material"></div>
+                        <div class="form-group"><label>Quantidade</label><input required name="quantidade" type="number" min="1"></div>
+                        <div class="form-group"><label>Valor Unit. (R$)</label><input required name="valor" type="number" step="0.01"></div>
                     </div>
                     <button type="submit" class="btn">Gerar Ordem</button>
                 </form>
@@ -350,7 +137,6 @@
             </div>
         </div>
 
-        <!-- [VIEW 4] ESTOQUE: Lista de Materiais -->
         <div id="view-estoque" class="hidden">
             <div class="table-container">
                 <table>
@@ -362,186 +148,129 @@
 
     </main>
 
-    <!-- SCRIPT JAVASCRIPT: Lógica do Frontend -->
     <script>
-        // Inicializa os ícones da biblioteca Lucide
         lucide.createIcons();
-        
-        // Define dinamicamente a URL base da API
-        function resolverApiUrl() {
-            const params = new URLSearchParams(window.location.search);
-            const apiParam = params.get('api');
-            if (apiParam) {
-                const clean = apiParam.replace(/\/$/, '');
-                localStorage.setItem('apiUrl', clean);
-                return clean;
-            }
-            const saved = localStorage.getItem('apiUrl');
-            if (saved) return saved;
+        const params = new URLSearchParams(window.location.search);
+        const apiParam = params.get('api');
+        const inferredHost = window.location.hostname || 'localhost';
+        const defaultApi = `http://${inferredHost || 'localhost'}:8080/api`;
+        const API_URL = (apiParam || defaultApi).replace(/\/$/, '');
+        const MOCK_DATA = {
+            '/estoque': [
+                { id: 1, nome: 'Aço Inox (Simulado)', quantidade: 100 },
+                { id: 2, nome: 'Parafusos M10 (Simulado)', quantidade: 500 },
+                { id: 3, nome: 'Borracha (Simulado)', quantidade: 50 }
+            ],
+            '/fornecedores': [
+                { id: 1, nome: 'Fornecedor Exemplo A', produto: 'Aço', preco: 100.0, cnpj: '00.000.000/0001-00' },
+                { id: 2, nome: 'Fornecedor Exemplo B', produto: 'Parafusos', preco: 5.50, cnpj: '11.111.111/0001-11' }
+            ],
+            '/ordens': [
+                { id: 1, idItem: 1, quantidade: 10, valor: 1000.0, status: 1 },
+                { id: 2, idItem: 2, quantidade: 50, valor: 275.0, status: 0 }
+            ],
+            '/financeiro': { saldo: 100000.00 }
+        };
 
-            // Modo offline (abrindo via file:// ou servidor local da pasta baixada)
-            if (window.location.protocol === 'file:') {
-                return './api';
-            }
-
-            // Se estiver rodando no GitHub Pages, use API estática hospedada no próprio Pages
-            const isPages = window.location.hostname.includes('github.io');
-            if (isPages) {
-                const base = window.location.pathname.startsWith('/POO-PROJETO-FINAL')
-                    ? '/POO-PROJETO-FINAL'
-                    : '';
-                return `${base}/api`;
-            }
-
-            // fallback local
-            return 'http://localhost:8080/api';
-        }
-
-        const API_URL = resolverApiUrl();
-        document.getElementById('backend-url').innerText = `API: ${API_URL}`;
-
-        // --- SISTEMA DE ROTEAMENTO (SPA Simples) ---
-        // Alterna a visibilidade das divs baseada no botão clicado
         function router(viewName) {
-            // Esconde todas as views
             document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden'));
-            // Mostra a view selecionada
             document.getElementById(`view-${viewName}`).classList.remove('hidden');
-            
-            // Atualiza o estado visual (active) dos botões do menu
             document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`nav-${viewName}`).classList.add('active');
-
-            // Atualiza o título da página
             const titles = { 'dashboard': 'Visão Geral', 'fornecedores': 'Gerenciar Fornecedores', 'ordens': 'Ordens de Compra', 'estoque': 'Controle de Estoque' };
             document.getElementById('page-title').innerText = titles[viewName];
-            
-            // Busca dados novos ao trocar de tela
             atualizarDados();
         }
 
-        // --- COMUNICAÇÃO COM O BACKEND C++ ---
-
-        // Função genérica para fazer requisições GET
         async function fetchAPI(endpoint) {
-            const tryFetch = async (url) => {
-                const res = await fetch(url);
-                return res.ok ? res.json() : null;
-            };
-
             try {
-                let data = await tryFetch(`${API_URL}${endpoint}`);
-                if (!data && !endpoint.endsWith('.json')) {
-                    data = await tryFetch(`${API_URL}${endpoint}.json`);
-                }
-
-                if (data) {
-                    document.getElementById('backend-status-dot').className = 'status-dot dot-green';
-                    document.getElementById('backend-status-text').innerText = 'Online';
-                    return data;
-                }
-
-                throw new Error('Erro na rede');
+                const response = await fetch(`${API_URL}${endpoint}`);
+                if (!response.ok) throw new Error('Erro na rede');
+                document.getElementById('backend-status-dot').className = 'status-dot dot-green';
+                document.getElementById('backend-status-text').innerText = 'Online';
+                return await response.json();
             } catch (error) {
-                console.error("Backend offline:", error);
-                document.getElementById('backend-status-dot').className = 'status-dot dot-red';
-                document.getElementById('backend-status-text').innerText = 'Offline';
-                return null;
+                document.getElementById('backend-status-dot').className = 'status-dot dot-yellow';
+                document.getElementById('backend-status-text').innerText = 'Simulação (Offline)';
+                await new Promise(r => setTimeout(r, 200));
+                return MOCK_DATA[endpoint] || [];
             }
         }
 
-        // Função principal que atualiza todas as tabelas e cards
         async function atualizarDados() {
-            // 1. Busca e Renderiza Estoque
             const estoque = await fetchAPI('/estoque');
             if (estoque) {
                 const tbody = document.getElementById('lista-estoque');
-                if (Array.isArray(estoque)) {
-                    tbody.innerHTML = estoque.map(item => `
-                        <tr>
-                            <td>#${item.id ?? '-'}</td>
-                            <td>${item.nome ?? item.material ?? '-'}</td>
-                            <td>${item.quantidade ?? item.qtd ?? 0}</td>
-                            <td>${(item.quantidade ?? item.qtd ?? 0) < 50 ? '<span class="badge bg-red">Baixo</span>' : '<span class="badge bg-green">OK</span>'}</td>
-                        </tr>
-                    `).join('');
-                    document.getElementById('dash-estoque').innerText = estoque.reduce((acc, i) => acc + (Number(i.quantidade ?? i.qtd ?? 0)), 0);
-                } else {
-                    tbody.innerHTML = `
-                        <tr><td colspan="4">Itens: ${estoque.total_itens ?? '-'} | Valor total: R$ ${(estoque.valor_total ?? 0).toFixed(2)}</td></tr>
-                    `;
-                    document.getElementById('dash-estoque').innerText = estoque.total_itens ?? 0;
-                }
+                tbody.innerHTML = estoque.map(item => `
+                    <tr>
+                        <td>#${item.id}</td>
+                        <td>${item.nome}</td>
+                        <td>${item.quantidade}</td>
+                        <td>${item.quantidade < 50 ? '<span class="badge bg-red">Baixo</span>' : '<span class="badge bg-green">OK</span>'}</td>
+                    </tr>
+                `).join('');
+                document.getElementById('dash-estoque').innerText = estoque.reduce((acc, i) => acc + (i.quantidade || 0), 0);
             }
 
-            // 2. Busca e Renderiza Fornecedores
             const fornecedores = await fetchAPI('/fornecedores');
             if (fornecedores) {
-                document.getElementById('lista-fornecedores').innerHTML = fornecedores.map(f => {
-                    const produto = f.produto ?? f.email ?? '-';
-                    const preco = Number(f.preco ?? f.valor ?? 0);
-                    const cnpj = f.cnpj ?? f.endereco ?? f.telefone ?? '-';
-                    return `<tr><td>#${f.id ?? '-'}</td><td>${f.nome ?? '-'}</td><td>${produto}</td><td>R$ ${preco.toFixed(2)}</td><td>${cnpj}</td></tr>`;
-                }).join('');
+                document.getElementById('lista-fornecedores').innerHTML = fornecedores.map(f => `
+                    <tr><td>#${f.id}</td><td>${f.nome}</td><td>${f.produto}</td><td>R$ ${Number(f.preco).toFixed(2)}</td><td>${f.cnpj}</td></tr>
+                `).join('');
                 document.getElementById('dash-fornecedores').innerText = fornecedores.length;
             }
 
-            // 3. Busca e Renderiza Ordens de Compra
             const ordens = await fetchAPI('/ordens');
             if (ordens) {
                 document.getElementById('lista-ordens').innerHTML = ordens.map(o => {
-                    const statusVal = Number(o.status ?? 0);
                     let badge = 'bg-yellow';
-                    if(statusVal === 1) badge = 'bg-green';
-                    if(statusVal === 2) badge = 'bg-red';
-                    const statusMap = ["Pendente", "Aprovado", "Rejeitado", "Enviado", "Entregue", o.status];
-                    return `<tr><td>#${o.id ?? '-'}</td><td>${o.item ?? o.descricao ?? '-'}</td><td>${o.quantidade ?? 0}</td><td>R$ ${(Number(o.valor ?? 0)).toFixed(2)}</td><td><span class="badge ${badge}">${statusMap[statusVal] || 'Desconhecido'}</span></td></tr>`;
+                    if(o.status === 1) badge = 'bg-green';
+                    if(o.status === 2) badge = 'bg-red';
+                    const statusMap = ["Pendente", "Aprovado", "Rejeitado", "Enviado", "Entregue"];
+                    return `<tr><td>#${o.id}</td><td>Item #${o.idItem}</td><td>${o.quantidade}</td><td>R$ ${(o.valor).toFixed(2)}</td><td><span class="badge ${badge}">${statusMap[o.status] || 'Desconhecido'}</span></td></tr>`;
                 }).join('');
                 document.getElementById('dash-ordens').innerText = ordens.length;
             }
 
-            // 4. Busca e Renderiza Saldo Financeiro
             const financeiro = await fetchAPI('/financeiro');
             if (financeiro) {
-                const saldo = Number(financeiro.saldo ?? financeiro.saldo_disponivel ?? 0);
+                const saldo = financeiro.saldo !== undefined ? financeiro.saldo : 0;
                 document.getElementById('dash-saldo').innerText = `R$ ${saldo.toFixed(2)}`;
             }
         }
 
-        // Função para enviar novo fornecedor (POST)
         async function cadastrarFornecedor(e) {
-            e.preventDefault(); // Evita recarregar a página
-            const formData = new FormData(e.target);
-            // Converte FormData para URL params (formato simples para C++ ler)
-            const params = new URLSearchParams(formData).toString();
-            
-            await fetch(`${API_URL}/fornecedores?${params}`, { method: 'POST' });
-            e.target.reset(); // Limpa o formulário
-            alert('Enviado ao Backend!');
-            atualizarDados(); // Atualiza a lista
-        }
-
-        // Função para criar nova ordem (POST)
-        async function criarOrdem(e) {
             e.preventDefault();
             const formData = new FormData(e.target);
             const params = new URLSearchParams(formData).toString();
-            
-            const res = await fetch(`${API_URL}/ordens?${params}`, { method: 'POST' });
-            const data = await res.json();
-            
-            if(data.sucesso) alert('Ordem Criada com Sucesso!');
-            else alert('Erro: ' + (data.msg || 'Falha ao criar'));
-            
+            try {
+                await fetch(`${API_URL}/fornecedores?${params}`, { method: 'POST' });
+                alert('Enviado ao Backend!');
+            } catch (error) {
+                alert('Backend Offline: Cadastro simulado!');
+            }
             e.target.reset();
             atualizarDados();
         }
 
-        // Inicialização: carrega dados ao abrir a página
+        async function criarOrdem(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const params = new URLSearchParams(formData).toString();
+            try {
+                const res = await fetch(`${API_URL}/ordens?${params}`, { method: 'POST' });
+                const data = await res.json();
+                if(data.sucesso) alert('Ordem Criada!');
+                else alert('Erro: ' + (data.msg || 'Falha'));
+            } catch (error) {
+                alert('Backend Offline: Ordem simulada!');
+            }
+            e.target.reset();
+            atualizarDados();
+        }
+
         atualizarDados();
-        
-        // Auto-refresh: atualiza dados a cada 5 segundos para simular tempo real
-        setInterval(atualizarDados, 5000); 
+        setInterval(atualizarDados, 5000);
     </script>
 </body>
 </html>
