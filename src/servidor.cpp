@@ -41,7 +41,6 @@ using socklen_arg = socklen_t;
     #endif
 #endif
 
-#if SERVIDOR_STANDALONE
 namespace {
 std::string jsonEscape(const std::string& in) {
     std::string out;
@@ -363,6 +362,7 @@ void serve(int port, const std::string& fornecedoresFile, const std::string& ord
 }
 } // namespace
 
+#if SERVIDOR_STANDALONE
 int main() {
     const std::string fornecedoresFile = "data/fornecedores.txt";
     const std::string ordensFile = "data/ordens.txt";

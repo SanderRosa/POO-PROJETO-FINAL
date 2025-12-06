@@ -46,7 +46,13 @@ g++ -std=c++17 -Iinclude \
 
 ### Windows (MinGW/CLion)
 - Certifique-se de usar C++17 ou superior.
-- Para compilar apenas o servidor HTTP, inclua somente `src/servidor.cpp` e os headers em `include/` (não misture com `src/main.cpp`).
+- Para o console (sem servidor HTTP), compile apenas `src/main.cpp`, `ModuloCompras.cpp`, `GerenciadorFornecedores.cpp`, `GerenciadorOrdens.cpp`, `PersistenciaCompras.cpp`.
+- Para o servidor HTTP, compile somente `src/servidor.cpp` com `-DSERVIDOR_STANDALONE=1` e linke `-lws2_32`:
+  ```bash
+  g++ -std=c++17 -DSERVIDOR_STANDALONE=1 -Iinclude src/servidor.cpp -lws2_32 -o http_server.exe
+  ./http_server.exe
+  ```
+- Se `src/servidor.cpp` for incluído em um alvo que já tem `main.cpp`, defina `-DSERVIDOR_STANDALONE=0` para evitar `main` duplicado.
 
 ## Licença
 MIT (veja `LICENSE`).
