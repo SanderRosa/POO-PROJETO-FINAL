@@ -18,7 +18,7 @@ GerenciadorOrdens::~GerenciadorOrdens() {}
 
 // Método principal para criar uma nova ordem de compra.
 // Recebe os dados do item, quantidade, valor e fornecedor.
-int GerenciadorOrdens::criar(int idItem, int quantidade, double valorUnitario, int idFornecedor) {
+int GerenciadorOrdens::criar(int idItem, int quantidade, double valorUnitario, int idFornecedor, const std::string& dataChegada) {
     // Validação básica: não permite criar pedidos com quantidade zero ou valor negativo.
     if (quantidade <= 0 || valorUnitario < 0) {
         // Lança exceção se os dados forem inválidos.
@@ -38,7 +38,7 @@ int GerenciadorOrdens::criar(int idItem, int quantidade, double valorUnitario, i
     double valorTotal = valorUnitario * quantidade;
 
     // Cria o objeto OrdemCompra na memória temporária com status inicial PENDENTE.
-    OrdemCompra novaOrdem(proximoId, idItem, quantidade, valorUnitario, idFornecedor);
+    OrdemCompra novaOrdem(proximoId, idItem, quantidade, valorUnitario, idFornecedor, dataChegada);
     // Guarda o ID atual para uso posterior.
     int idOrdemAtribuido = proximoId;
 

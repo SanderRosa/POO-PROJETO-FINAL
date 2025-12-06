@@ -3,77 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Compras</title>
+    <title>ERP Compras - C++ Backend</title>
+    
+    <!-- Fonte Inter para visual moderno -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
+        /* --- TEMA PREMIUM (Slate Dark) --- */
         :root {
+            /* Paleta de Cores Refinada */
             --primary: #3b82f6;
-            --bg: #111827;
-            --surface: #1f2937;
-            --text: #f9fafb;
-            --text-light: #9ca3af;
-            --border: #374151;
+            --primary-hover: #2563eb;
+            --bg-body: #0f172a;       /* Slate 900 */
+            --bg-surface: #1e293b;    /* Slate 800 */
+            --bg-hover: #334155;      /* Slate 700 */
+            --border: #334155;        /* Slate 700 */
+            
+            --text-main: #f8fafc;     /* Slate 50 */
+            --text-muted: #94a3b8;    /* Slate 400 */
+            
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --hover-bg: #374151;
+            
+            /* Sombras Suaves */
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
-        aside { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; position: fixed; height: 100%; }
-        .brand { display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); font-size: 1.25rem; font-weight: 800; color: var(--primary); gap: 0.5rem; }
-        nav button { width: 100%; text-align: left; padding: 0.75rem 1rem; border: none; background: none; color: var(--text-light); cursor: pointer; border-radius: 0.5rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; transition: all 0.2s; }
-        nav button:hover, nav button.active { background-color: rgba(59, 130, 246, 0.1); color: var(--primary); }
-        main { margin-left: 260px; padding: 2rem; width: 100%; }
-        header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
-        h1 { font-size: 1.5rem; font-weight: 700; color: var(--text); }
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
-        .card h3 { font-size: 0.875rem; color: var(--text-light); margin-bottom: 0.5rem; }
-        .card .value { font-size: 1.875rem; font-weight: 700; color: var(--text); }
-        .table-container { background: var(--surface); border-radius: 1rem; border: 1px solid var(--border); overflow: hidden; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        body { 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            display: flex; 
+            min-height: 100vh; 
+            font-size: 15px;
+        }
+
+        /* --- SIDEBAR --- */
+        aside { 
+            width: 280px; 
+            background: var(--bg-surface); 
+            border-right: 1px solid var(--border); 
+            padding: 1.5rem; 
+            position: fixed; 
+            height: 100%; 
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+        }
+        
+        .brand { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem; 
+            font-size: 1.25rem; 
+            font-weight: 700; 
+            color: white; 
+            margin-bottom: 2.5rem;
+            padding: 0 0.5rem;
+        }
+        
+        .brand i { color: var(--primary); }
+
+        nav button { 
+            width: 100%; 
+            text-align: left; 
+            padding: 0.75rem 1rem; 
+            border: none; 
+            background: transparent; 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            border-radius: 0.5rem; 
+            margin-bottom: 0.25rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem; 
+            font-weight: 500; 
+            transition: all 0.2s ease;
+        }
+        
+        nav button:hover { 
+            background-color: var(--bg-hover); 
+            color: white; 
+        }
+        
+        nav button.active { 
+            background-color: var(--primary); 
+            color: white; 
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .sidebar-footer { margin-top: auto; }
+        .status-badge {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* --- MAIN CONTENT --- */
+        main { 
+            margin-left: 280px; 
+            padding: 2.5rem; 
+            width: 100%; 
+            max-width: 1600px;
+        }
+
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 2.5rem; 
+        }
+        
+        h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
+
+        /* --- CARDS --- */
+        .grid-cards { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2.5rem; 
+        }
+        
+        .card { 
+            background: var(--bg-surface); 
+            padding: 1.5rem; 
+            border-radius: 1rem; 
+            border: 1px solid var(--border); 
+            box-shadow: var(--shadow);
+        }
+        
+        .card h3 { 
+            color: var(--text-muted); 
+            font-size: 0.85rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+            margin-bottom: 0.5rem; 
+            font-weight: 600;
+        }
+        
+        .card .value { font-size: 2rem; font-weight: 700; color: white; }
+
+        /* --- TABLES --- */
+        .table-wrapper {
+            background: var(--bg-surface);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { background: #111827; padding: 1rem; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 600; border-bottom: 1px solid var(--border); }
-        td { padding: 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; color: var(--text); }
-        tr:hover { background-color: var(--hover-bg); }
-        .badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; border: 1px solid; }
-        .bg-green { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
-        .bg-red { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
-        .bg-yellow { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
-        .form-section { background: var(--surface); padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border); margin-bottom: 2rem; }
-        .form-section h3 { margin-bottom: 1.5rem; color: var(--text); }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
-        .form-group label { display: block; font-size: 0.875rem; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-light); }
-        input, select { width: 100%; padding: 0.6rem; background-color: #111827; border: 1px solid var(--border); border-radius: 0.5rem; outline: none; color: white; }
-        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
-        .btn { background: var(--primary); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; transition: background-color 0.2s; }
-        .btn:hover { background: #2563eb; }
+        
+        th { 
+            background: rgba(0,0,0,0.2); 
+            padding: 1rem 1.5rem; 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            color: var(--text-muted); 
+            font-weight: 600; 
+            border-bottom: 1px solid var(--border);
+        }
+        
+        td { 
+            padding: 1rem 1.5rem; 
+            border-bottom: 1px solid var(--border); 
+            color: var(--text-main);
+        }
+        
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: var(--bg-hover); }
+
+        /* --- FORMS --- */
+        .form-box {
+            background: var(--bg-surface);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 1.5rem; 
+        }
+        
+        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 500; }
+        
+        input, select { 
+            width: 100%; 
+            padding: 0.75rem; 
+            background: var(--bg-body); 
+            border: 1px solid var(--border); 
+            border-radius: 0.5rem; 
+            color: white; 
+            outline: none; 
+            transition: all 0.2s;
+        }
+        
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+
+        /* --- COMPONENTS --- */
+        .btn { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 0.5rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            transition: background 0.2s; 
+        }
+        .btn:hover { background: var(--primary-hover); }
+        
+        .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+        .btn-ghost:hover { border-color: var(--text-main); color: var(--text-main); }
+
+        .badge { padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; border: 1px solid transparent; }
+        .bg-green { background: rgba(16,185,129,0.15); color: #34d399; border-color: rgba(16,185,129,0.2); }
+        .bg-red { background: rgba(239,68,68,0.15); color: #f87171; border-color: rgba(239,68,68,0.2); }
+        .bg-yellow { background: rgba(245,158,11,0.15); color: #fbbf24; border-color: rgba(245,158,11,0.2); }
+
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .dot-green { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .dot-red { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+        
         .hidden { display: none; }
-        .sidebar-footer { margin-top: auto; padding-top: 2rem; }
-        .status-box { background: #111827; padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border); }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .dot-green { background: var(--success); box-shadow: 0 0 5px var(--success); }
-        .dot-red { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
-        .dot-yellow { background: var(--warning); box-shadow: 0 0 5px var(--warning); }
     </style>
 </head>
 <body>
+
     <aside>
         <div class="brand">
-            <i data-lucide="package"></i> ERP Compras
+            <i data-lucide="box" size="28"></i>
+            <span>ERP System</span>
         </div>
         <nav>
-            <button onclick="router('dashboard')" id="nav-dashboard" class="active"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-            <button onclick="router('fornecedores')" id="nav-fornecedores"><i data-lucide="users"></i> Fornecedores</button>
-            <button onclick="router('ordens')" id="nav-ordens"><i data-lucide="shopping-cart"></i> Ordens de Compra</button>
-            <button onclick="router('estoque')" id="nav-estoque"><i data-lucide="boxes"></i> Estoque</button>
+            <button onclick="router('dashboard')" id="nav-dashboard" class="active"><i data-lucide="layout-dashboard" size="20"></i> Dashboard</button>
+            <button onclick="router('fornecedores')" id="nav-fornecedores"><i data-lucide="users" size="20"></i> Fornecedores</button>
+            <button onclick="router('ordens')" id="nav-ordens"><i data-lucide="shopping-cart" size="20"></i> Ordens</button>
+            <button onclick="router('estoque')" id="nav-estoque"><i data-lucide="package" size="20"></i> Estoque</button>
+            <button onclick="router('producao')" id="nav-producao"><i data-lucide="clipboard-list" size="20"></i> Solicitações</button>
         </nav>
         <div class="sidebar-footer">
-            <div class="status-box">
-                <small style="color: var(--text-light);">Status do Backend</small>
-                <div style="display: flex; align-items: center; margin-top: 0.5rem; font-weight: 600; color: var(--text);">
+            <div class="status-badge">
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Backend</span>
+                <div style="display: flex; align-items: center;">
                     <span id="backend-status-dot" class="status-dot dot-red"></span>
-                    <span id="backend-status-text">Desconectado</span>
+                    <strong id="backend-status-text">OFF</strong>
                 </div>
             </div>
         </div>
@@ -81,191 +274,221 @@
 
     <main>
         <header>
-            <h1 id="page-title">Visão Geral</h1>
-            <button class="btn" onclick="atualizarDados()">Atualizar Dados</button>
+            <h1 id="page-title">Dashboard</h1>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-ghost" onclick="atualizarDados()"><i data-lucide="refresh-cw" size="18"></i> Atualizar</button>
+            </div>
         </header>
 
+        <!-- DASHBOARD -->
         <div id="view-dashboard">
             <div class="grid-cards">
-                <div class="card"><h3>Saldo Financeiro</h3><div class="value" id="dash-saldo">R$ --</div></div>
+                <div class="card"><h3>Saldo</h3><div class="value" id="dash-saldo">R$ --</div></div>
                 <div class="card"><h3>Fornecedores</h3><div class="value" id="dash-fornecedores">--</div></div>
-                <div class="card"><h3>Itens em Estoque</h3><div class="value" id="dash-estoque">--</div></div>
-                <div class="card"><h3>Ordens Totais</h3><div class="value" id="dash-ordens">--</div></div>
+                <div class="card"><h3>Estoque Total</h3><div class="value" id="dash-estoque">--</div></div>
+                <div class="card"><h3>Ordens</h3><div class="value" id="dash-ordens">--</div></div>
             </div>
         </div>
 
+        <!-- FORNECEDORES -->
         <div id="view-fornecedores" class="hidden">
-            <div class="form-section">
-                <h3>Cadastrar Fornecedor</h3>
-                <form id="form-fornecedor" onsubmit="cadastrarFornecedor(event)">
+            <div class="form-box">
+                <h3 style="margin-bottom:1.5rem; font-size:1.1rem;">Novo Fornecedor</h3>
+                <form onsubmit="cadastrarFornecedor(event)">
                     <div class="form-grid">
-                        <div class="form-group"><label>Nome</label><input required name="nome" type="text" placeholder="Ex: Aços Ltda"></div>
-                        <div class="form-group"><label>CNPJ</label><input required name="cnpj" type="text" placeholder="00.000.000/0000-00"></div>
-                        <div class="form-group"><label>Endereço</label><input required name="endereco" type="text" placeholder="Rua Exemplo, 123"></div>
-                        <div class="form-group"><label>Produto</label><input required name="produto" type="text" placeholder="Ex: Parafusos"></div>
-                        <div class="form-group"><label>Preço (R$)</label><input required name="preco" type="number" step="0.01" placeholder="0.00"></div>
+                        <div><label>Nome da Empresa</label><input required name="nome" placeholder="Ex: Metalúrgica..."></div>
+                        <div><label>CNPJ</label><input required name="cnpj" placeholder="00.000.000/0000-00"></div>
+                        <div><label>Endereço</label><input required name="endereco" placeholder="Rua, número"></div>
+                        <div><label>Produto Principal</label><input required name="produto"></div>
+                        <div><label>Preço Ref. (R$)</label><input required name="preco" type="number" step="0.01"></div>
                     </div>
-                    <button type="submit" class="btn">Salvar Fornecedor</button>
+                    <div style="text-align: right;"><button type="submit" class="btn">Cadastrar</button></div>
                 </form>
             </div>
-            <div class="table-container">
+            <div class="table-wrapper">
                 <table>
-                    <thead><tr><th>ID</th><th>Nome</th><th>Produto</th><th>Preço</th><th>CNPJ</th></tr></thead>
+                    <thead><tr><th>ID</th><th>Empresa</th><th>Produto</th><th>Preço</th><th>CNPJ</th><th>Endereço</th></tr></thead>
                     <tbody id="lista-fornecedores"></tbody>
                 </table>
             </div>
         </div>
 
+        <!-- ORDENS -->
         <div id="view-ordens" class="hidden">
-            <div class="form-section">
-                <h3>Nova Ordem de Compra</h3>
-                <form id="form-ordem" onsubmit="criarOrdem(event)">
+            <div class="form-box">
+                <h3 style="margin-bottom:1.5rem; font-size:1.1rem;">Nova Ordem</h3>
+                <form onsubmit="criarOrdem(event)">
                     <div class="form-grid">
-                        <div class="form-group"><label>Fornecedor (ID)</label><input required name="idFornecedor" type="number" placeholder="ID do Fornecedor"></div>
-                        <div class="form-group"><label>Item (ID)</label><input required name="idItem" type="number" placeholder="ID do Material"></div>
-                        <div class="form-group"><label>Quantidade</label><input required name="quantidade" type="number" min="1"></div>
-                        <div class="form-group"><label>Valor Unit. (R$)</label><input required name="valor" type="number" step="0.01"></div>
+                        <div><label>ID Fornecedor</label><input required name="idFornecedor" type="number"></div>
+                        <div><label>ID Material</label><input required name="idItem" type="number"></div>
+                        <div><label>Quantidade</label><input required name="quantidade" type="number"></div>
+                        <div><label>Valor Unit. (R$)</label><input required name="valor" type="number" step="0.01"></div>
+                        <div><label>Data Prevista de Chegada</label><input name="data_chegada" type="date"></div>
                     </div>
-                    <button type="submit" class="btn">Gerar Ordem</button>
+                    <div style="text-align: right;"><button type="submit" class="btn">Lançar Ordem</button></div>
                 </form>
             </div>
-            <div class="table-container">
+            <div class="table-wrapper">
                 <table>
-                    <thead><tr><th>ID</th><th>Item</th><th>Qtd</th><th>Total</th><th>Status</th></tr></thead>
+                    <thead><tr><th>ID</th><th>Item</th><th>Qtd</th><th>Total</th><th>Status</th><th>Chegada Prevista</th></tr></thead>
                     <tbody id="lista-ordens"></tbody>
                 </table>
             </div>
         </div>
 
+        <!-- ESTOQUE -->
         <div id="view-estoque" class="hidden">
-            <div class="table-container">
+            <div class="table-wrapper">
                 <table>
                     <thead><tr><th>ID</th><th>Material</th><th>Quantidade</th><th>Status</th></tr></thead>
                     <tbody id="lista-estoque"></tbody>
                 </table>
             </div>
+            <h3 style="margin: 2rem 0 1rem; font-size:1.1rem;">Estoque Previsto</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Material</th><th>Qtd Prevista</th><th>Ordem de Compra</th><th>Data Prevista</th></tr></thead>
+                    <tbody id="lista-estoque-previsto"></tbody>
+                </table>
+            </div>
         </div>
 
+        <!-- SOLICITAÇÕES DA PRODUÇÃO -->
+        <div id="view-producao" class="hidden">
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>ID</th><th>Material</th><th>Qtd Solicitada</th><th>Prioridade</th><th>Status</th><th>OC Origem</th></tr></thead>
+                    <tbody id="lista-producao"></tbody>
+                </table>
+            </div>
+        </div>
     </main>
 
     <script>
         lucide.createIcons();
-        const params = new URLSearchParams(window.location.search);
-        const apiParam = params.get('api');
-        const inferredHost = window.location.hostname || 'localhost';
-        const defaultApi = `http://${inferredHost || 'localhost'}:8080/api`;
-        const API_URL = (apiParam || defaultApi).replace(/\/$/, '');
-        const MOCK_DATA = {
+        
+        // --- CONFIG ---
+        const API_URL = 'http://localhost:8080/api';
+        
+        const MOCK = {
             '/estoque': [
-                { id: 1, nome: 'Aço Inox (Simulado)', quantidade: 100 },
-                { id: 2, nome: 'Parafusos M10 (Simulado)', quantidade: 500 },
-                { id: 3, nome: 'Borracha (Simulado)', quantidade: 50 }
+                {id:1, nome:'Aço Inox', quantidade:120},
+                {id:2, nome:'Parafusos M10', quantidade:5000},
+                {id:3, nome:'Borracha', quantidade:45}
+            ],
+            '/estoque/previsto': [
+                {idMaterial:1, quantidade:50, idOrdemCompra:1, dataPrevista:'2025-01-20'}
             ],
             '/fornecedores': [
-                { id: 1, nome: 'Fornecedor Exemplo A', produto: 'Aço', preco: 100.0, cnpj: '00.000.000/0001-00' },
-                { id: 2, nome: 'Fornecedor Exemplo B', produto: 'Parafusos', preco: 5.50, cnpj: '11.111.111/0001-11' }
+                {id:1, nome:'Metalúrgica Alpha', produto:'Aço', preco:150.00, cnpj:'12.345.678/0001-90', endereco:'Rua Industrial, 500'},
+                {id:2, nome:'Parafusos Express', produto:'Parafusos', preco:0.50, cnpj:'98.765.432/0001-10', endereco:'Av. Logística, 100'}
             ],
             '/ordens': [
-                { id: 1, idItem: 1, quantidade: 10, valor: 1000.0, status: 1 },
-                { id: 2, idItem: 2, quantidade: 50, valor: 275.0, status: 0 }
+                {id:1, idItem:1, quantidade:10, valor:1500.00, status:1, data_chegada:'2025-01-20'},
+                {id:2, idItem:2, quantidade:1000, valor:500.00, status:0, data_chegada:'2025-01-25'}
             ],
-            '/financeiro': { saldo: 100000.00 }
+            '/producao': [
+                {id:1, idMaterial:1, quantidade:50, prioridade:3, status:'pendente', idOrdemCompra:1}
+            ],
+            '/financeiro': {saldo: 95000.00}
         };
 
-        function router(viewName) {
-            document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`view-${viewName}`).classList.remove('hidden');
-            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`nav-${viewName}`).classList.add('active');
-            const titles = { 'dashboard': 'Visão Geral', 'fornecedores': 'Gerenciar Fornecedores', 'ordens': 'Ordens de Compra', 'estoque': 'Controle de Estoque' };
-            document.getElementById('page-title').innerText = titles[viewName];
+        function router(view) {
+            document.querySelectorAll('main > div').forEach(d => d.classList.add('hidden'));
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(`nav-${view}`).classList.add('active');
+            
+            const titles = {
+                'dashboard':'Visão Geral',
+                'fornecedores':'Fornecedores',
+                'ordens':'Gestão de Compras',
+                'estoque':'Inventário',
+                'producao':'Solicitações da Produção'
+            };
+            document.getElementById('page-title').innerText = titles[view];
             atualizarDados();
         }
 
         async function fetchAPI(endpoint) {
             try {
-                const response = await fetch(`${API_URL}${endpoint}`);
-                if (!response.ok) throw new Error('Erro na rede');
+                const res = await fetch(`${API_URL}${endpoint}`);
+                if (!res.ok) throw new Error();
                 document.getElementById('backend-status-dot').className = 'status-dot dot-green';
-                document.getElementById('backend-status-text').innerText = 'Online';
-                return await response.json();
-            } catch (error) {
-                document.getElementById('backend-status-dot').className = 'status-dot dot-yellow';
-                document.getElementById('backend-status-text').innerText = 'Simulação (Offline)';
-                await new Promise(r => setTimeout(r, 200));
-                return MOCK_DATA[endpoint] || [];
+                document.getElementById('backend-status-text').innerText = 'ON';
+                return await res.json();
+            } catch {
+                document.getElementById('backend-status-dot').className = 'status-dot dot-red';
+                document.getElementById('backend-status-text').innerText = 'OFF';
+                await new Promise(r => setTimeout(r, 100)); 
+                return MOCK[endpoint] || [];
             }
         }
 
         async function atualizarDados() {
+            // Estoque
             const estoque = await fetchAPI('/estoque');
-            if (estoque) {
-                const tbody = document.getElementById('lista-estoque');
-                tbody.innerHTML = estoque.map(item => `
-                    <tr>
-                        <td>#${item.id}</td>
-                        <td>${item.nome}</td>
-                        <td>${item.quantidade}</td>
-                        <td>${item.quantidade < 50 ? '<span class="badge bg-red">Baixo</span>' : '<span class="badge bg-green">OK</span>'}</td>
-                    </tr>
-                `).join('');
-                document.getElementById('dash-estoque').innerText = estoque.reduce((acc, i) => acc + (i.quantidade || 0), 0);
-            }
+            document.getElementById('lista-estoque').innerHTML = estoque.map(i => `
+                <tr><td>#${i.id}</td><td>${i.nome}</td><td>${i.quantidade}</td>
+                <td>${i.quantidade < 50 ? '<span class="badge bg-red">Baixo</span>' : '<span class="badge bg-green">OK</span>'}</td></tr>`).join('');
+            document.getElementById('dash-estoque').innerText = estoque.reduce((a,b)=>a+(b.quantidade||0),0);
 
-            const fornecedores = await fetchAPI('/fornecedores');
-            if (fornecedores) {
-                document.getElementById('lista-fornecedores').innerHTML = fornecedores.map(f => `
-                    <tr><td>#${f.id}</td><td>${f.nome}</td><td>${f.produto}</td><td>R$ ${Number(f.preco).toFixed(2)}</td><td>${f.cnpj}</td></tr>
-                `).join('');
-                document.getElementById('dash-fornecedores').innerText = fornecedores.length;
-            }
+            // Estoque Previsto
+            const previsto = await fetchAPI('/estoque/previsto');
+            document.getElementById('lista-estoque-previsto').innerHTML = previsto.map(p => `
+                <tr><td>Item #${p.idMaterial}</td><td>${p.quantidade}</td><td>#${p.idOrdemCompra||'-'}</td><td>${p.dataPrevista||'-'}</td></tr>`).join('');
 
+            // Fornecedores
+            const forn = await fetchAPI('/fornecedores');
+            document.getElementById('lista-fornecedores').innerHTML = forn.map(f => `
+                <tr><td>#${f.id}</td><td>${f.nome}</td><td>${f.produto}</td><td>R$ ${f.preco.toFixed(2)}</td><td>${f.cnpj}</td><td>${f.endereco||'-'}</td></tr>`).join('');
+            document.getElementById('dash-fornecedores').innerText = forn.length;
+
+            // Ordens
             const ordens = await fetchAPI('/ordens');
-            if (ordens) {
-                document.getElementById('lista-ordens').innerHTML = ordens.map(o => {
-                    let badge = 'bg-yellow';
-                    if(o.status === 1) badge = 'bg-green';
-                    if(o.status === 2) badge = 'bg-red';
-                    const statusMap = ["Pendente", "Aprovado", "Rejeitado", "Enviado", "Entregue"];
-                    return `<tr><td>#${o.id}</td><td>Item #${o.idItem}</td><td>${o.quantidade}</td><td>R$ ${(o.valor).toFixed(2)}</td><td><span class="badge ${badge}">${statusMap[o.status] || 'Desconhecido'}</span></td></tr>`;
-                }).join('');
-                document.getElementById('dash-ordens').innerText = ordens.length;
-            }
+            document.getElementById('lista-ordens').innerHTML = ordens.map(o => {
+                const badge = o.status===1 ? 'bg-green' : (o.status===2 ? 'bg-red' : 'bg-yellow');
+                const st = ['Pendente','Aprovado','Rejeitado','Enviado','Entregue'][o.status] || 'Outro';
+                const total = (o.valor||0) * (o.quantidade||0);
+                return `<tr><td>#${o.id}</td><td>Item #${o.idItem}</td><td>${o.quantidade}</td><td>R$ ${total.toFixed(2)}</td>
+                <td><span class="badge ${badge}">${st}</span></td><td>${o.data_chegada||'-'}</td></tr>`;
+            }).join('');
+            document.getElementById('dash-ordens').innerText = ordens.length;
 
-            const financeiro = await fetchAPI('/financeiro');
-            if (financeiro) {
-                const saldo = financeiro.saldo !== undefined ? financeiro.saldo : 0;
-                document.getElementById('dash-saldo').innerText = `R$ ${saldo.toFixed(2)}`;
-            }
+            // Solicitações da Produção
+            const prod = await fetchAPI('/producao');
+            document.getElementById('lista-producao').innerHTML = prod.map(p => {
+                const prioLabel = p.prioridade===3 ? 'Alta' : (p.prioridade===2 ? 'Média' : 'Baixa');
+                return `<tr><td>#${p.id}</td><td>Item #${p.idMaterial}</td><td>${p.quantidade}</td><td>${prioLabel}</td><td>${p.status}</td><td>#${p.idOrdemCompra||'-'}</td></tr>`;
+            }).join('');
+
+            // Financeiro
+            const fin = await fetchAPI('/financeiro');
+            if(fin) document.getElementById('dash-saldo').innerText = `R$ ${(fin.saldo||0).toLocaleString('pt-BR')}`;
         }
 
         async function cadastrarFornecedor(e) {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const params = new URLSearchParams(formData).toString();
-            try {
-                await fetch(`${API_URL}/fornecedores?${params}`, { method: 'POST' });
-                alert('Enviado ao Backend!');
-            } catch (error) {
-                alert('Backend Offline: Cadastro simulado!');
+            try { 
+                await fetch(`${API_URL}/fornecedores?${new URLSearchParams(new FormData(e.target))}`, {method:'POST'}); 
+                alert('Fornecedor cadastrado!'); 
+            } catch { 
+                alert('Backend OFF: Cadastro simulado'); 
             }
-            e.target.reset();
+            e.target.reset(); 
             atualizarDados();
         }
 
         async function criarOrdem(e) {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const params = new URLSearchParams(formData).toString();
-            try {
-                const res = await fetch(`${API_URL}/ordens?${params}`, { method: 'POST' });
-                const data = await res.json();
-                if(data.sucesso) alert('Ordem Criada!');
-                else alert('Erro: ' + (data.msg || 'Falha'));
-            } catch (error) {
-                alert('Backend Offline: Ordem simulada!');
+            try { 
+                const res = await fetch(`${API_URL}/ordens?${new URLSearchParams(new FormData(e.target))}`, {method:'POST'});
+                const d = await res.json();
+                alert(d.sucesso ? 'Ordem criada e registrada no estoque previsto!' : 'Erro: '+d.msg);
+            } catch { 
+                alert('Backend OFF: Ordem simulada'); 
             }
-            e.target.reset();
+            e.target.reset(); 
             atualizarDados();
         }
 

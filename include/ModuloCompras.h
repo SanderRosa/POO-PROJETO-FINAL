@@ -60,11 +60,11 @@ public:
 
     // ========== OPERACOES COM ORDENS DE COMPRA ==========
 
-    int criarOrdemCompra(int idItem, int quantidade, double valorUnitario, int idFornecedor) {
+    int criarOrdemCompra(int idItem, int quantidade, double valorUnitario, int idFornecedor, const std::string& dataChegada = "") {
         if (buscarFornecedorPorId(idFornecedor) == nullptr) {
             throw ComprasException("Fornecedor nao encontrado!");
         }
-        return gerenciadorOrdens->criar(idItem, quantidade, valorUnitario, idFornecedor);
+        return gerenciadorOrdens->criar(idItem, quantidade, valorUnitario, idFornecedor, dataChegada);
     }
 
     void listarOrdens() const {
@@ -165,6 +165,14 @@ public:
     // Metodos auxiliares para menu
     auto obterTodasAsOrdens() const {
         return std::make_unique<ListaGenerica<OrdemCompra>>(gerenciadorOrdens->obterLista());
+    }
+
+    const ListaGenerica<OrdemCompra>& obterListaOrdens() const {
+        return gerenciadorOrdens->obterLista();
+    }
+
+    const ListaGenerica<Fornecedor>& obterListaFornecedores() const {
+        return gerenciadorFornecedores->obterLista();
     }
 
     void exibirTodasAsOrdens() const {

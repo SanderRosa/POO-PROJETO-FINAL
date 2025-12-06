@@ -32,7 +32,7 @@ public:
     GerenciadorOrdens();
     ~GerenciadorOrdens();
 
-    int criar(int idItem, int quantidade, double valorUnitario, int idFornecedor);
+    int criar(int idItem, int quantidade, double valorUnitario, int idFornecedor, const std::string& dataChegada = "");
     void listar() const;
     OrdemCompra* buscarPorId(int id);
     size_t obterQuantidade() const;

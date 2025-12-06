@@ -151,7 +151,7 @@ void PersistenciaCompras::salvarOrdens(const ListaGenerica<OrdemCompra>& lista) 
     }
 
     // Escreve o cabeçalho das ordens.
-    arquivo << "ID|IdItem|Quantidade|ValorUnitario|IdFornecedor|Status|DataSolicitacao\n";
+    arquivo << "ID|IdItem|Quantidade|ValorUnitario|IdFornecedor|Status|DataSolicitacao|DataChegadaPrevista\n";
 
     // Itera sobre a lista de ordens.
     for (size_t i = 0; i < lista.obterTamanho(); i++) {
@@ -163,7 +163,8 @@ void PersistenciaCompras::salvarOrdens(const ListaGenerica<OrdemCompra>& lista) 
                 << std::fixed << std::setprecision(2) << ordem.getValorUnitario() << "|"
                 << ordem.getIdFornecedor() << "|"
                 << static_cast<int>(ordem.getStatus()) << "|"
-                << ordem.getDataSolicitacao() << "\n";
+                << ordem.getDataSolicitacao() << "|"
+                << ordem.getDataChegadaPrevista() << "\n";
     }
 
     arquivo.close();
@@ -205,7 +206,7 @@ void PersistenciaCompras::carregarOrdens(ListaGenerica<OrdemCompra>& lista, int&
         std::istringstream iss(linha);
         // Strings temporárias para leitura.
         std::string id_str, idItem_str, quantidade_str, valor_str,
-                   idForn_str, status_str, data;
+                   idForn_str, status_str, dataSolicitacao, dataChegada;
 
         // Lê todos os campos sequencialmente separados por '|'.
         if (std::getline(iss, id_str, '|') &&
@@ -213,8 +214,10 @@ void PersistenciaCompras::carregarOrdens(ListaGenerica<OrdemCompra>& lista, int&
             std::getline(iss, quantidade_str, '|') &&
             std::getline(iss, valor_str, '|') &&
             std::getline(iss, idForn_str, '|') &&
-            std::getline(iss, status_str, '|') &&
-            std::getline(iss, data)) {
+            std::getline(iss, status_str, '|')) {
+
+            std::getline(iss, dataSolicitacao, '|');
+            std::getline(iss, dataChegada);
 
             // Converte as strings para os tipos numéricos corretos.
             int id = std::stoi(id_str);
@@ -231,7 +234,8 @@ void PersistenciaCompras::carregarOrdens(ListaGenerica<OrdemCompra>& lista, int&
             ordem.setStatus(static_cast<StatusOrdem>(status));
 
             // Define a data de solicitação original (lida do arquivo) para não sobrescrever com a data atual.
-            ordem.setDataSolicitacao(data);
+            if (!dataSolicitacao.empty()) ordem.setDataSolicitacao(dataSolicitacao);
+            if (!dataChegada.empty()) ordem.setDataChegadaPrevista(dataChegada);
 
             // Adiciona na lista em memória.
             lista.adicionar(ordem);

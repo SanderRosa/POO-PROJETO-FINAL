@@ -9,3 +9,5 @@ ID|Nome|Endereco|CNPJ|Produto|Preco
 8|Sul Parafusos|Rua H, 50|89.012.345/0001-08|Parafuso M5|0.14||0.00||0.00||0.00||0.00||0.00||0.00||0.00||0.00
 9|Leste Ferragens|Av. I, 101|90.123.456/0001-09|Parafuso M6|0.22||0.00||0.00||0.00||0.00||0.00||0.00||0.00||0.00
 10|Oeste Fixadores|Rua J, 11|10.234.567/0001-10|Parafuso Especial|0.30||0.00||0.00||0.00||0.00||0.00||0.00||0.00||0.00
+
+11|TesteLocal|Rua Local|00.000.000%2F0000-00|Item Local|9.99

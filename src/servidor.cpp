@@ -1,22 +1,23 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <string>
-#include <map>
 #include <algorithm>
 #include <chrono>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <mutex>
+#include <sstream>
+#include <string>
 #include <thread>
+#include <vector>
 
-// Servidor HTTP mínimo em C++ (Linux/Mac) para expor a API na porta 8080.
-// Sem dependências externas.
+#include "ModuloCompras.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
     #pragma comment(lib, "ws2_32")
 #else
-    #include <sys/socket.h>
     #include <netinet/in.h>
+    #include <sys/socket.h>
     #include <unistd.h>
     #include <cstring>
 #endif
@@ -42,6 +43,35 @@ using socklen_arg = socklen_t;
 #endif
 
 namespace {
+struct ProducaoRegistro {
+    int id{};
+    int idMaterial{};
+    int quantidade{};
+    int prioridade{};
+    std::string status;
+    int idOrdemCompra{};
+    std::string dataCriacao;
+    std::string dataPrevistaEntrega;
+};
+
+struct EstoquePrevisto {
+    int idMaterial{};
+    int quantidade{};
+    int idOrdemCompra{};
+    std::string dataPrevista;
+};
+
+const std::string ARQ_FORNECEDORES = "data/fornecedores.txt";
+const std::string ARQ_ORDENS = "data/ordens.txt";
+const std::string ARQ_PRODUCAO = "data/producao.txt";
+const std::string ARQ_ESTOQUE_PREV = "data/estoque_previsto.txt";
+
+ModuloCompras g_modulo;
+std::vector<ProducaoRegistro> g_producao;
+std::vector<EstoquePrevisto> g_previsto;
+int g_producaoNextId = 1;
+std::mutex g_mutex;
+
 std::string jsonEscape(const std::string& in) {
     std::string out;
     out.reserve(in.size());
@@ -75,7 +105,6 @@ std::map<std::string, std::string> parseQuery(const std::string& query) {
         if (pos != std::string::npos) {
             std::string k = kv.substr(0, pos);
             std::string v = kv.substr(pos + 1);
-            // decode + and %20 minimally
             std::replace(v.begin(), v.end(), '+', ' ');
             params[k] = v;
         }
@@ -83,114 +112,122 @@ std::map<std::string, std::string> parseQuery(const std::string& query) {
     return params;
 }
 
-struct Fornecedor {
-    int id{};
-    std::string nome;
-    std::string cnpj;
-    std::string endereco;
-    std::string produto;
-    double preco{};
-};
-
-struct Ordem {
-    int id{};
-    int idItem{};
-    int quantidade{};
-    double valor{};
-    int idFornecedor{};
-    int status{};
-    std::string data;
-};
-
-std::vector<Fornecedor> carregarFornecedores(const std::string& path) {
-    std::vector<Fornecedor> out;
-    std::ifstream f(path);
-    if (!f.is_open()) return out;
-    std::string line;
-    // descarta header
-    std::getline(f, line);
-    while (std::getline(f, line)) {
-        if (line.empty() || line[0] == '\r') continue;
-        auto parts = split(line, '|');
-        if (parts.size() < 6 || parts[0].empty()) continue;
-        Fornecedor fnd;
-        fnd.id = std::stoi(parts[0]);
-        fnd.nome = parts[1];
-        fnd.endereco = parts[2];
-        fnd.cnpj = parts[3];
-        fnd.produto = parts[4];
-        fnd.preco = std::stod(parts[5].empty() ? "0" : parts[5]);
-        out.push_back(fnd);
-    }
-    return out;
+std::string nowString() {
+    auto now = std::chrono::system_clock::now();
+    auto t = std::chrono::system_clock::to_time_t(now);
+    std::ostringstream oss;
+    oss << std::put_time(std::localtime(&t), "%d/%m/%Y %H:%M:%S");
+    return oss.str();
 }
 
-std::vector<Ordem> carregarOrdens(const std::string& path) {
-    std::vector<Ordem> out;
-    std::ifstream f(path);
-    if (!f.is_open()) return out;
+void carregarProducao() {
+    g_producao.clear();
+    g_producaoNextId = 1;
+    std::ifstream f(ARQ_PRODUCAO);
+    if (!f.is_open()) return;
     std::string line;
-    // header
     std::getline(f, line);
     while (std::getline(f, line)) {
-        if (line.empty() || line[0] == '\r') continue;
-        auto parts = split(line, '|');
-        if (parts.size() < 7 || parts[0].empty()) continue;
-        Ordem o;
-        o.id = std::stoi(parts[0]);
-        o.idItem = std::stoi(parts[1]);
-        o.quantidade = std::stoi(parts[2]);
-        o.valor = std::stod(parts[3]);
-        o.idFornecedor = std::stoi(parts[4]);
-        o.status = std::stoi(parts[5]);
-        o.data = parts[6];
-        out.push_back(o);
+        if (line.empty()) continue;
+        auto p = split(line, '|');
+        if (p.size() < 8) continue;
+        ProducaoRegistro r;
+        r.id = std::stoi(p[0]);
+        r.idMaterial = std::stoi(p[1]);
+        r.quantidade = std::stoi(p[2]);
+        r.prioridade = std::stoi(p[3]);
+        r.status = p[4];
+        r.idOrdemCompra = std::stoi(p[5]);
+        r.dataCriacao = p[6];
+        r.dataPrevistaEntrega = p[7];
+        g_producao.push_back(r);
+        g_producaoNextId = std::max(g_producaoNextId, r.id + 1);
     }
-    return out;
 }
 
-std::string jsonFornecedores(const std::vector<Fornecedor>& v) {
+void salvarProducao() {
+    std::ofstream f(ARQ_PRODUCAO);
+    f << "ID|IdMaterial|Quantidade|Prioridade|Status|IdOrdemCompra|DataCriacao|DataPrevistaEntrega\n";
+    for (const auto& r : g_producao) {
+        f << r.id << "|" << r.idMaterial << "|" << r.quantidade << "|" << r.prioridade << "|"
+          << r.status << "|" << r.idOrdemCompra << "|" << r.dataCriacao << "|" << r.dataPrevistaEntrega << "\n";
+    }
+}
+
+void carregarPrevisto() {
+    g_previsto.clear();
+    std::ifstream f(ARQ_ESTOQUE_PREV);
+    if (!f.is_open()) return;
+    std::string line;
+    std::getline(f, line);
+    while (std::getline(f, line)) {
+        if (line.empty()) continue;
+        auto p = split(line, '|');
+        if (p.size() < 4) continue;
+        EstoquePrevisto e;
+        e.idMaterial = std::stoi(p[0]);
+        e.quantidade = std::stoi(p[1]);
+        e.idOrdemCompra = std::stoi(p[2]);
+        e.dataPrevista = p[3];
+        g_previsto.push_back(e);
+    }
+}
+
+void salvarPrevisto() {
+    std::ofstream f(ARQ_ESTOQUE_PREV);
+    f << "IdMaterial|Quantidade|IdOrdemCompra|DataPrevista\n";
+    for (const auto& e : g_previsto) {
+        f << e.idMaterial << "|" << e.quantidade << "|" << e.idOrdemCompra << "|" << e.dataPrevista << "\n";
+    }
+}
+
+std::string jsonFornecedores(const ListaGenerica<Fornecedor>& lista) {
     std::ostringstream os;
     os << "[";
-    for (size_t i = 0; i < v.size(); ++i) {
-        const auto& f = v[i];
+    for (size_t i = 0; i < lista.obterTamanho(); ++i) {
+        const auto& f = lista.obter(i);
         os << "{";
-        os << "\"id\":" << f.id << ",";
-        os << "\"nome\":\"" << jsonEscape(f.nome) << "\",";
-        os << "\"produto\":\"" << jsonEscape(f.produto) << "\",";
-        os << "\"preco\":" << f.preco << ",";
-        os << "\"cnpj\":\"" << jsonEscape(f.cnpj) << "\",";
-        os << "\"endereco\":\"" << jsonEscape(f.endereco) << "\"";
+        os << "\"id\":" << f.getId() << ",";
+        os << "\"nome\":\"" << jsonEscape(f.getNome()) << "\",";
+        os << "\"produto\":\"" << jsonEscape(f.getProduto()) << "\",";
+        os << "\"preco\":" << f.getPrecoProduto() << ",";
+        os << "\"cnpj\":\"" << jsonEscape(f.getCNPJ()) << "\",";
+        os << "\"endereco\":\"" << jsonEscape(f.getEndereco()) << "\"";
         os << "}";
-        if (i + 1 < v.size()) os << ",";
+        if (i + 1 < lista.obterTamanho()) os << ",";
     }
     os << "]";
     return os.str();
 }
 
-std::string jsonOrdens(const std::vector<Ordem>& v) {
+std::string jsonOrdens(const ListaGenerica<OrdemCompra>& lista) {
     std::ostringstream os;
     os << "[";
-    for (size_t i = 0; i < v.size(); ++i) {
-        const auto& o = v[i];
+    for (size_t i = 0; i < lista.obterTamanho(); ++i) {
+        const auto& o = lista.obter(i);
         os << "{";
-        os << "\"id\":" << o.id << ",";
-        os << "\"item\":\"Item " << o.idItem << "\",";
-        os << "\"idItem\":" << o.idItem << ",";
-        os << "\"quantidade\":" << o.quantidade << ",";
-        os << "\"valor\":" << o.valor << ",";
-        os << "\"status\":" << o.status << ",";
-        os << "\"descricao\":\"" << jsonEscape(o.data) << "\"";
+        os << "\"id\":" << o.getIdTransacao() << ",";
+        os << "\"idItem\":" << o.getIdItem() << ",";
+        os << "\"quantidade\":" << o.getQuantidade() << ",";
+        os << "\"valor\":" << o.getValorUnitario() << ",";
+        os << "\"status\":" << static_cast<int>(o.getStatus()) << ",";
+        os << "\"descricao\":\"" << jsonEscape(o.getDataSolicitacao()) << "\",";
+        os << "\"data_chegada\":\"" << jsonEscape(o.getDataChegadaPrevista()) << "\"";
         os << "}";
-        if (i + 1 < v.size()) os << ",";
+        if (i + 1 < lista.obterTamanho()) os << ",";
     }
     os << "]";
     return os.str();
 }
 
-std::string jsonEstoque(const std::vector<Ordem>& ordens) {
+std::string jsonEstoqueAtual(const ListaGenerica<OrdemCompra>& lista) {
     std::map<int, int> soma;
-    for (const auto& o : ordens) soma[o.idItem] += o.quantidade;
+    for (size_t i = 0; i < lista.obterTamanho(); ++i) {
+        const auto& o = lista.obter(i);
+        if (o.getStatus() != StatusOrdem::REJEITADO) {
+            soma[o.getIdItem()] += o.getQuantidade();
+        }
+    }
     std::ostringstream os;
     os << "[";
     size_t idx = 0;
@@ -198,22 +235,48 @@ std::string jsonEstoque(const std::vector<Ordem>& ordens) {
         os << "{";
         os << "\"id\":" << kv.first << ",";
         os << "\"nome\":\"Item " << kv.first << "\",";
-        os << "\"quantidade\":" << kv.second;
-        os << "}";
+        os << "\"quantidade\":" << kv.second << "}";
         if (++idx < soma.size()) os << ",";
     }
     os << "]";
     return os.str();
 }
 
-std::string jsonFinanceiro(const std::vector<Ordem>& ordens) {
-    double total = 0.0;
-    for (const auto& o : ordens) total += o.valor * o.quantidade;
+std::string jsonPrevisto() {
     std::ostringstream os;
-    os << "{\"saldo\":" << total << ",";
-    os << "\"saldo_disponivel\":" << total << ",";
-    os << "\"contas_pagar\":" << (total * 0.4) << ",";
-    os << "\"pendencias\":" << ordens.size() << "}";
+    os << "[";
+    for (size_t i = 0; i < g_previsto.size(); ++i) {
+        const auto& e = g_previsto[i];
+        os << "{";
+        os << "\"idMaterial\":" << e.idMaterial << ",";
+        os << "\"quantidade\":" << e.quantidade << ",";
+        os << "\"idOrdemCompra\":" << e.idOrdemCompra << ",";
+        os << "\"dataPrevista\":\"" << jsonEscape(e.dataPrevista) << "\"";
+        os << "}";
+        if (i + 1 < g_previsto.size()) os << ",";
+    }
+    os << "]";
+    return os.str();
+}
+
+std::string jsonProducao() {
+    std::ostringstream os;
+    os << "[";
+    for (size_t i = 0; i < g_producao.size(); ++i) {
+        const auto& p = g_producao[i];
+        os << "{";
+        os << "\"id\":" << p.id << ",";
+        os << "\"idMaterial\":" << p.idMaterial << ",";
+        os << "\"quantidade\":" << p.quantidade << ",";
+        os << "\"prioridade\":" << p.prioridade << ",";
+        os << "\"status\":\"" << jsonEscape(p.status) << "\",";
+        os << "\"idOrdemCompra\":" << p.idOrdemCompra << ",";
+        os << "\"dataCriacao\":\"" << jsonEscape(p.dataCriacao) << "\",";
+        os << "\"dataPrevistaEntrega\":\"" << jsonEscape(p.dataPrevistaEntrega) << "\"";
+        os << "}";
+        if (i + 1 < g_producao.size()) os << ",";
+    }
+    os << "]";
     return os.str();
 }
 
@@ -233,64 +296,243 @@ std::string notFound() { return httpResponse("{\"error\":\"not found\"}", 404); 
 
 std::string statusOk() { return httpResponse("{\"status\":\"online\",\"message\":\"Backend C++ ativo\"}"); }
 
-std::string handleGet(const std::string& path, const std::vector<Fornecedor>& fornec, const std::vector<Ordem>& ordens) {
+std::string handleGet(const std::string& path, const std::map<std::string, std::string>& params) {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (path == "/api/status") return statusOk();
-    if (path == "/api/fornecedores") return httpResponse(jsonFornecedores(fornec));
-    if (path == "/api/ordens") return httpResponse(jsonOrdens(ordens));
-    if (path == "/api/estoque") return httpResponse(jsonEstoque(ordens));
-    if (path == "/api/financeiro") return httpResponse(jsonFinanceiro(ordens));
+    if (path == "/api/fornecedores") return httpResponse(jsonFornecedores(g_modulo.obterListaFornecedores()));
+    if (path == "/api/fornecedores/produto") {
+        const auto& lista = g_modulo.obterListaFornecedores();
+        std::ostringstream os; os << "["; bool first = true;
+        std::string prod = params.count("produto") ? params.at("produto") : "";
+        for (size_t i = 0; i < lista.obterTamanho(); ++i) {
+            const auto& f = lista.obter(i);
+            if (!prod.empty() && f.getProduto() != prod) continue;
+            if (!first) os << ","; else first = false;
+            os << "{";
+            os << "\"id\":" << f.getId() << ",";
+            os << "\"nome\":\"" << jsonEscape(f.getNome()) << "\",";
+            os << "\"produto\":\"" << jsonEscape(f.getProduto()) << "\",";
+            os << "\"preco\":" << f.getPrecoProduto() << "}";
+        }
+        os << "]";
+        return httpResponse(os.str());
+    }
+    if (path == "/api/fornecedores/ordenado_preco") {
+        const auto& lista = g_modulo.obterListaFornecedores();
+        std::vector<Fornecedor> tmp;
+        for (size_t i = 0; i < lista.obterTamanho(); ++i) tmp.push_back(lista.obter(i));
+        std::sort(tmp.begin(), tmp.end(), [](const Fornecedor& a, const Fornecedor& b){return a.getPrecoProduto() > b.getPrecoProduto();});
+        std::ostringstream os; os << "[";
+        for (size_t i = 0; i < tmp.size(); ++i) {
+            const auto& f = tmp[i];
+            os << "{" << "\"id\":" << f.getId() << "," << "\"nome\":\"" << jsonEscape(f.getNome()) << "\"," << "\"preco\":" << f.getPrecoProduto() << "}";
+            if (i + 1 < tmp.size()) os << ",";
+        }
+        os << "]";
+        return httpResponse(os.str());
+    }
+    if (path == "/api/ordens") return httpResponse(jsonOrdens(g_modulo.obterListaOrdens()));
+    if (path == "/api/ordens/buscar") {
+        int id = params.count("id") ? std::stoi(params.at("id")) : -1;
+        OrdemCompra* o = g_modulo.buscarOrdenPorId(id);
+        if (!o) return httpResponse("{\"encontrado\":false}");
+        std::ostringstream os;
+        os << "{\"encontrado\":true,\"id\":" << o->getIdTransacao()
+           << ",\"idItem\":" << o->getIdItem() << ",\"quantidade\":" << o->getQuantidade()
+           << ",\"valor\":" << o->getValorUnitario() << ",\"status\":" << static_cast<int>(o->getStatus())
+           << ",\"data_chegada\":\"" << jsonEscape(o->getDataChegadaPrevista()) << "\"}";
+        return httpResponse(os.str());
+    }
+    if (path == "/api/estatisticas") {
+        const auto& lista = g_modulo.obterListaOrdens();
+        int aprov = 0, reje = 0, pend = 0; double total = 0;
+        for (size_t i = 0; i < lista.obterTamanho(); ++i) {
+            const auto& o = lista.obter(i);
+            switch (o.getStatus()) {
+                case StatusOrdem::APROVADO: aprov++; total += o.getValorTotal(); break;
+                case StatusOrdem::REJEITADO: reje++; break;
+                default: pend++; break;
+            }
+        }
+        std::ostringstream os;
+        os << "{\"aprovadas\":" << aprov << ",\"rejeitadas\":" << reje << ",\"pendentes\":" << pend << ",\"valorTotalAprovado\":" << total << "}";
+        return httpResponse(os.str());
+    }
+    if (path == "/api/investigar") {
+        int id = params.count("idFornecedor") ? std::stoi(params.at("idFornecedor")) : -1;
+        Fornecedor* f = g_modulo.buscarFornecedorPorId(id);
+        if (!f) return httpResponse("{\"sucesso\":false,\"msg\":\"Fornecedor não encontrado\"}");
+        std::string url = "https://www.google.com/search?q=" + f->getNome() + "+CNPJ+" + f->getCNPJ();
+        return httpResponse("{\"sucesso\":true,\"url\":\"" + jsonEscape(url) + "\"}");
+    }
+    if (path == "/api/estoque") return httpResponse(jsonEstoqueAtual(g_modulo.obterListaOrdens()));
+    if (path == "/api/estoque/consultar") {
+        int idMat = params.count("idMaterial") ? std::stoi(params.at("idMaterial")) : -1;
+        int qtd = g_modulo.consultarEstoque(idMat);
+        std::ostringstream os;
+        os << "{\"idMaterial\":" << idMat << ",\"quantidade\":" << qtd << "}";
+        return httpResponse(os.str());
+    }
+    if (path == "/api/estoque/previsto") return httpResponse(jsonPrevisto());
+    if (path == "/api/producao") return httpResponse(jsonProducao());
+    if (path == "/api/producao/pendentes") {
+        std::vector<ProducaoRegistro> pend;
+        for (const auto& p : g_producao) if (p.status != "finalizado" && p.status != "concluido") pend.push_back(p);
+        std::ostringstream os; os << "[";
+        for (size_t i = 0; i < pend.size(); ++i) {
+            const auto& p = pend[i];
+            os << "{" << "\"id\":" << p.id << ",\"idMaterial\":" << p.idMaterial << ",\"quantidade\":" << p.quantidade << "}";
+            if (i + 1 < pend.size()) os << ",";
+        }
+        os << "]";
+        return httpResponse(os.str());
+    }
+    if (path == "/api/financeiro") {
+        const auto& ordens = g_modulo.obterListaOrdens();
+        double total = 0;
+        for (size_t i = 0; i < ordens.obterTamanho(); ++i) total += ordens.obter(i).getValorTotal();
+        double contas = total * 0.4;
+        std::ostringstream os;
+        os << "{\"saldo\":" << total << ",\"saldo_disponivel\":" << total << ",\"contas_pagar\":" << contas << ",\"pendencias\":" << ordens.obterTamanho() << "}";
+        return httpResponse(os.str());
+    }
+    if (path == "/api/financeiro/contas_pagar") {
+        auto lista = g_modulo.getModuloFinanceiro()->listarContasPagar();
+        std::ostringstream os; os << "[";
+        for (size_t i = 0; i < lista.size(); ++i) {
+            os << "{\"descricao\":\"" << jsonEscape(lista[i]) << "\"}";
+            if (i + 1 < lista.size()) os << ",";
+        }
+        os << "]";
+        return httpResponse(os.str());
+    }
+    if (path == "/api/financeiro/saldo") {
+        double saldo = g_modulo.consultarSaldoFinanceiro();
+        std::ostringstream os; os << "{\"saldo\":" << saldo << "}";
+        return httpResponse(os.str());
+    }
+    if (path == "/api/salvar") {
+        g_modulo.salvarTodosDados();
+        salvarProducao();
+        salvarPrevisto();
+        return httpResponse("{\"sucesso\":true}");
+    }
+    if (path == "/api/carregar") {
+        g_modulo.carregarTodosDados();
+        carregarProducao();
+        carregarPrevisto();
+        return httpResponse("{\"sucesso\":true}");
+    }
     return notFound();
 }
 
-bool appendFornecedor(const std::string& file, const std::map<std::string, std::string>& p, int nextId) {
-    std::ofstream f(file, std::ios::app);
-    if (!f.is_open()) return false;
-    f << "\n" << nextId << "|" << p.at("nome") << "|" << p.at("endereco") << "|" << p.at("cnpj") << "|" << p.at("produto") << "|" << p.at("preco");
-    return true;
+void registrarPrevisto(int idMaterial, int quantidade, int idOrdem, const std::string& dataPrevista) {
+    EstoquePrevisto e{ idMaterial, quantidade, idOrdem, dataPrevista };
+    g_previsto.push_back(e);
+    salvarPrevisto();
 }
 
-bool appendOrdem(const std::string& file, const std::map<std::string, std::string>& p, int nextId) {
-    std::ofstream f(file, std::ios::app);
-    if (!f.is_open()) return false;
-    const std::string data = ""; // omit data/hora para simplicidade
-    f << "\n" << nextId << "|" << p.at("idItem") << "|" << p.at("quantidade") << "|" << p.at("valor") << "|" << p.at("idFornecedor") << "|0|" << data;
-    return true;
+void registrarProducaoAutomatica(int idMaterial, int quantidade, int idOrdem, const std::string& dataPrevista) {
+    ProducaoRegistro r;
+    r.id = g_producaoNextId++;
+    r.idMaterial = idMaterial;
+    r.quantidade = quantidade;
+    r.prioridade = 2;
+    r.status = "em_preparacao";
+    r.idOrdemCompra = idOrdem;
+    r.dataCriacao = nowString();
+    r.dataPrevistaEntrega = dataPrevista.empty() ? "A definir" : dataPrevista;
+    g_producao.push_back(r);
+    salvarProducao();
 }
 
-std::string handlePost(const std::string& pathWithQuery, std::vector<Fornecedor>& fornec, std::vector<Ordem>& ordens, const std::string& fornecedoresFile, const std::string& ordensFile) {
-    auto pos = pathWithQuery.find('?');
-    const std::string path = (pos == std::string::npos) ? pathWithQuery : pathWithQuery.substr(0, pos);
-    const std::string query = (pos == std::string::npos) ? "" : pathWithQuery.substr(pos + 1);
-    auto params = parseQuery(query);
+std::string handlePost(const std::string& path, const std::map<std::string, std::string>& params) {
+    std::lock_guard<std::mutex> lock(g_mutex);
 
     if (path == "/api/fornecedores") {
         if (params.count("nome") == 0 || params.count("cnpj") == 0 || params.count("endereco") == 0 || params.count("produto") == 0 || params.count("preco") == 0)
             return httpResponse("{\"sucesso\":false,\"msg\":\"Parâmetros incompletos\"}");
-        int nextId = fornec.empty() ? 1 : (fornec.back().id + 1);
-        if (appendFornecedor(fornecedoresFile, params, nextId)) {
-            Fornecedor f{nextId, params["nome"], params["cnpj"], params["endereco"], params["produto"], std::stod(params["preco"])};
-            fornec.push_back(f);
-            return httpResponse("{\"sucesso\":true}");
+        try {
+            int id = g_modulo.adicionarFornecedor(params.at("nome"), params.at("endereco"), params.at("cnpj"), params.at("produto"), std::stod(params.at("preco")));
+            g_modulo.salvarTodosDados();
+            return httpResponse("{\"sucesso\":true,\"id\":" + std::to_string(id) + "}");
+        } catch (const std::exception& e) {
+            return httpResponse("{\"sucesso\":false,\"msg\":\"" + jsonEscape(e.what()) + "\"}");
         }
-        return httpResponse("{\"sucesso\":false}");
     }
 
     if (path == "/api/ordens") {
         if (params.count("idFornecedor") == 0 || params.count("idItem") == 0 || params.count("quantidade") == 0 || params.count("valor") == 0)
             return httpResponse("{\"sucesso\":false,\"msg\":\"Parâmetros incompletos\"}");
-        int nextId = ordens.empty() ? 1 : (ordens.back().id + 1);
-        if (appendOrdem(ordensFile, params, nextId)) {
-            Ordem o{nextId, std::stoi(params["idItem"]), std::stoi(params["quantidade"]), std::stod(params["valor"]), std::stoi(params["idFornecedor"]), 0, ""};
-            ordens.push_back(o);
-            return httpResponse("{\"sucesso\":true}");
+        try {
+            int idItem = std::stoi(params.at("idItem"));
+            int quantidade = std::stoi(params.at("quantidade"));
+            double valor = std::stod(params.at("valor"));
+            int idFornecedor = std::stoi(params.at("idFornecedor"));
+            std::string dataChegada = params.count("data_chegada") ? params.at("data_chegada") : "";
+            int id = g_modulo.criarOrdemCompra(idItem, quantidade, valor, idFornecedor, dataChegada);
+            g_modulo.salvarTodosDados();
+            registrarPrevisto(idItem, quantidade, id, dataChegada.empty() ? "Nao informada" : dataChegada);
+            registrarProducaoAutomatica(idItem, quantidade, id, dataChegada);
+            return httpResponse("{\"sucesso\":true,\"id\":" + std::to_string(id) + "}");
+        } catch (const std::exception& e) {
+            return httpResponse("{\"sucesso\":false,\"msg\":\"" + jsonEscape(e.what()) + "\"}");
         }
-        return httpResponse("{\"sucesso\":false}");
+    }
+
+    if (path == "/api/estoque/reservar") {
+        int idMat = params.count("idMaterial") ? std::stoi(params.at("idMaterial")) : -1;
+        int qtd = params.count("quantidade") ? std::stoi(params.at("quantidade")) : 0;
+        bool ok = g_modulo.reservarMaterial(idMat, qtd);
+        return httpResponse(ok ? "{\"sucesso\":true}" : "{\"sucesso\":false}");
+    }
+
+    if (path == "/api/estoque/entrada") {
+        int idMat = params.count("idMaterial") ? std::stoi(params.at("idMaterial")) : -1;
+        int qtd = params.count("quantidade") ? std::stoi(params.at("quantidade")) : 0;
+        int idOrdem = params.count("idOrdemCompra") ? std::stoi(params.at("idOrdemCompra")) : 0;
+        std::string dataPrev = params.count("data_prevista") ? params.at("data_prevista") : nowString();
+        g_modulo.getModuloEstoque()->registrarEntradaCompra(idMat, qtd, idOrdem);
+        registrarPrevisto(idMat, qtd, idOrdem, dataPrev);
+        return httpResponse("{\"sucesso\":true}");
+    }
+
+    if (path == "/api/producao" || path == "/api/producao/pedido") {
+        int idMat = params.count("idMaterial") ? std::stoi(params.at("idMaterial")) : -1;
+        int qtd = params.count("quantidade") ? std::stoi(params.at("quantidade")) : 0;
+        int prioridade = params.count("prioridade") ? std::stoi(params.at("prioridade")) : 2;
+        int idOrdem = params.count("idOrdemCompra") ? std::stoi(params.at("idOrdemCompra")) : 0;
+        std::string dataPrev = params.count("data_prevista") ? params.at("data_prevista") : "A definir";
+        ProducaoRegistro r;
+        r.id = g_producaoNextId++;
+        r.idMaterial = idMat;
+        r.quantidade = qtd;
+        r.prioridade = prioridade;
+        r.status = "pendente";
+        r.idOrdemCompra = idOrdem;
+        r.dataCriacao = nowString();
+        r.dataPrevistaEntrega = dataPrev;
+        g_producao.push_back(r);
+        salvarProducao();
+        return httpResponse("{\"sucesso\":true,\"id\":" + std::to_string(r.id) + "}");
     }
 
     return notFound();
 }
 
-void serve(int port, const std::string& fornecedoresFile, const std::string& ordensFile) {
+std::pair<std::string, std::map<std::string, std::string>> parsePathAndParams(const std::string& pathWithQuery, const std::string& body) {
+    auto pos = pathWithQuery.find('?');
+    std::string path = (pos == std::string::npos) ? pathWithQuery : pathWithQuery.substr(0, pos);
+    std::string query = (pos == std::string::npos) ? "" : pathWithQuery.substr(pos + 1);
+    auto params = parseQuery(query);
+    if (!body.empty()) {
+        auto bodyParams = parseQuery(body);
+        params.insert(bodyParams.begin(), bodyParams.end());
+    }
+    return {path, params};
+}
+
+void serve(int port) {
     if (!initSockets()) {
         std::cerr << "Erro ao inicializar sockets\n";
         return;
@@ -323,11 +565,11 @@ void serve(int port, const std::string& fornecedoresFile, const std::string& ord
     }
 
     std::cout << "Servidor HTTP C++ na porta " << port << "\n";
-    std::cout << "Endpoints: /api/status, /api/fornecedores, /api/ordens, /api/estoque, /api/financeiro\n";
-    std::cout << "POST para /api/fornecedores e /api/ordens (query params)\n";
+    std::cout << "Endpoints expostos: /api/status, /api/fornecedores, /api/ordens, /api/estoque, /api/estoque/previsto, /api/producao, /api/financeiro" << "\n";
 
-    std::vector<Fornecedor> fornecedores = carregarFornecedores(fornecedoresFile);
-    std::vector<Ordem> ordens = carregarOrdens(ordensFile);
+    g_modulo.carregarTodosDados();
+    carregarProducao();
+    carregarPrevisto();
 
     while (true) {
         sockaddr_in client{};
@@ -335,7 +577,7 @@ void serve(int port, const std::string& fornecedoresFile, const std::string& ord
         socket_t client_fd = accept(server_fd, (sockaddr*)&client, &len);
         if (client_fd < 0) continue;
 
-        char buffer[8192];
+        char buffer[16384];
         int n = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
         if (n <= 0) { closeSocket(client_fd); continue; }
         buffer[n] = '\0';
@@ -345,13 +587,21 @@ void serve(int port, const std::string& fornecedoresFile, const std::string& ord
         std::string method, path, version;
         iss >> method >> path >> version;
 
+        std::string body;
+        auto posBody = req.find("\r\n\r\n");
+        if (posBody != std::string::npos) body = req.substr(posBody + 4);
+
+        auto parsed = parsePathAndParams(path, body);
+        const std::string cleanPath = parsed.first;
+        const auto params = parsed.second;
+
         std::string response;
         if (method == "OPTIONS") {
             response = httpResponse("", 204);
         } else if (method == "GET") {
-            response = handleGet(path, fornecedores, ordens);
+            response = handleGet(cleanPath, params);
         } else if (method == "POST") {
-            response = handlePost(path, fornecedores, ordens, fornecedoresFile, ordensFile);
+            response = handlePost(cleanPath, params);
         } else {
             response = notFound();
         }
@@ -364,9 +614,8 @@ void serve(int port, const std::string& fornecedoresFile, const std::string& ord
 
 #if SERVIDOR_STANDALONE
 int main() {
-    const std::string fornecedoresFile = "data/fornecedores.txt";
-    const std::string ordensFile = "data/ordens.txt";
-    serve(8080, fornecedoresFile, ordensFile);
+    serve(8080);
     return 0;
 }
 #endif // SERVIDOR_STANDALONE
+

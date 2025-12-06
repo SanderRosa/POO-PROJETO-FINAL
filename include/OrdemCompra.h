@@ -36,6 +36,7 @@ private:
     int quantidade;                ///< Quantidade a ser comprada
     StatusOrdem status;            ///< Status atual da ordem
     std::string dataSolicitacao;   ///< Data em que foi solicitada
+    std::string dataChegadaPrevista; ///< Data prevista de chegada
     double valorUnitario;          ///< Valor unitário do item
     int idFornecedor;              ///< ID do fornecedor
 
@@ -44,12 +45,12 @@ public:
     OrdemCompra() 
         : idTransacao(0), idItem(0), quantidade(0), 
           status(StatusOrdem::PENDENTE), dataSolicitacao(""), 
-          valorUnitario(0.0), idFornecedor(0) {}
+          dataChegadaPrevista(""), valorUnitario(0.0), idFornecedor(0) {}
 
     // Construtor parametrizado: inicializa campos e define a data atual como solicitação
-    OrdemCompra(int idTx, int idI, int qtd, double valorUnit, int idForn)
+    OrdemCompra(int idTx, int idI, int qtd, double valorUnit, int idForn, const std::string& dataChegada = "")
         : idTransacao(idTx), idItem(idI), quantidade(qtd),
-          status(StatusOrdem::PENDENTE), valorUnitario(valorUnit),
+          status(StatusOrdem::PENDENTE), dataChegadaPrevista(dataChegada), valorUnitario(valorUnit),
           idFornecedor(idForn) {
         
         // Define a data atual da solicitação
@@ -69,6 +70,7 @@ public:
     int getQuantidade() const { return quantidade; }
     StatusOrdem getStatus() const { return status; }
     std::string getDataSolicitacao() const { return dataSolicitacao; }
+    std::string getDataChegadaPrevista() const { return dataChegadaPrevista; }
     double getValorUnitario() const { return valorUnitario; }
     int getIdFornecedor() const { return idFornecedor; }
     
@@ -81,6 +83,7 @@ public:
     void setQuantidade(int qtd) { quantidade = qtd; }
     void setValorUnitario(double valor) { valorUnitario = valor; }
     void setDataSolicitacao(const std::string& data) { dataSolicitacao = data; }
+    void setDataChegadaPrevista(const std::string& data) { dataChegadaPrevista = data; }
 
     // Retorna o status como string para exibição
     std::string getStatusString() const {
@@ -113,7 +116,8 @@ public:
             << " Valor Total: R$ " << getValorTotal() << "\n"
             << " Status: " << getStatusString() << "\n"
             << " Fornecedor ID: " << idFornecedor << "\n"
-            << " Data Solicitacao: " << dataSolicitacao << "\n";
+            << " Data Solicitacao: " << dataSolicitacao << "\n"
+            << " Data Prevista de Chegada: " << (dataChegadaPrevista.empty() ? "Nao informada" : dataChegadaPrevista) << "\n";
 
         
         return oss.str();
